@@ -35,7 +35,7 @@ class ReviewService {
       await review.save();
 
       // Populate and return the review
-      const populatedReview = await review
+      const populatedReview = await Review.findById(review._id)
         .populate("doctor", "specialization yearsOfExperience")
         .populate("patient", "name email");
 
