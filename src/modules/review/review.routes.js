@@ -22,7 +22,7 @@ router.delete(
   "/:reviewId",
   protect,
   verifyEmail,
-  authorize("admin"),
+  // authorize("admin"),
   reviewController.deleteReview
 );
 

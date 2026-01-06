@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema(
   {
-    doctor: {
+    doctorProfile: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "DoctorProfile",
       required: true,
@@ -31,11 +31,11 @@ const reviewSchema = new mongoose.Schema(
 );
 
 // Indexes for better query performance
-reviewSchema.index({ doctor: 1 });
+reviewSchema.index({ doctorProfile: 1 });
 reviewSchema.index({ patient: 1 });
 reviewSchema.index({ rating: 1 });
 
 // Prevent duplicate reviews - one review per patient per doctor
-reviewSchema.index({ doctor: 1, patient: 1 }, { unique: true });
+reviewSchema.index({ doctorProfile: 1, patient: 1 }, { unique: true });
 
 export default mongoose.models.Review || mongoose.model("Review", reviewSchema);

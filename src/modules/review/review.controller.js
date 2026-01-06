@@ -22,26 +22,46 @@ class ReviewController {
     }
   }
 
-  // Get all reviews for a doctor
   async getReviewsByDoctor(req, res) {
     try {
       const { id: doctorId } = req.params;
-      const options = {
-        page: req.query.page || 1,
-        limit: req.query.limit || 10,
-      };
 
-      const result = await reviewService.getReviewsByDoctor(doctorId, options);
+      // Validate query parameters
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
 
-      res.status(200).json({
+      if (page < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Page number must be greater than 0",
+        });
+      }
+
+      if (limit < 1 || limit > 100) {
+        return res.status(400).json({
+          success: false,
+          message: "Limit must be between 1 and 100",
+        });
+      }
+
+      const result = await reviewService.getReviewsByDoctor(doctorId, {
+        page,
+        limit,
+      });
+
+      return res.status(200).json({
         success: true,
         data: result.reviews,
         pagination: result.pagination,
       });
     } catch (error) {
-      res.status(404).json({
+      // Handle specific error types with appropriate status codes
+      const statusCode = error.statusCode || 500;
+      const message = error.message || "Failed to fetch reviews";
+
+      return res.status(statusCode).json({
         success: false,
-        message: error.message || "Failed to fetch reviews",
+        message,
       });
     }
   }

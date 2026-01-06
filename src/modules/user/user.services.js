@@ -1,4 +1,6 @@
 import User from "../../models/user.model.js";
+import { sendVerificationEmail } from "../../utils/mail.util.js";
+import crypto from "crypto";
 
 class UserService {
   async getAllUsers() {
@@ -16,11 +18,24 @@ class UserService {
         if (emailExits) {
           throw new Error("Email already Exists");
         }
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+
+        // Hash and store token
+        updateData.emailVerificationToken = crypto
+          .createHash("sha256")
+          .update(verificationToken)
+          .digest("hex");
+        updateData.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
         updateData.isEmailVerified = false;
+        await sendVerificationEmail(
+          updateData.email,
+          verificationToken,
+          updatedUser.firstName
+        );
       }
       const user = await User.findByIdAndUpdate(userId, updateData, {
         new: true,
-      }).select("-password");
+      }).select("-password -emailVerificationToken");
       if (!user) {
         throw new Error("User not found");
       }

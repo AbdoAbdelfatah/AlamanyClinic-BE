@@ -22,9 +22,14 @@ class UserController {
       const { userId } = req.params;
       const updateData = req.body;
       const updatedUser = await userServices.updateUser(userId, updateData);
+      let message = "User updated successfully";
+      if (updateData?.email) {
+        message +=
+          ". Please verify your new email address to complete the update.";
+      }
       res.status(200).json({
         success: true,
-        message: "User updated successfully",
+        message: message,
         data: updatedUser,
       });
     } catch (error) {
