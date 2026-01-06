@@ -81,6 +81,7 @@ export const verifyEmail = (req, res, next) => {
 
 // Check doctor verification status
 export const checkDoctorVerification = (req, res, next) => {
+  console.log("User role and status:", req.user);
   if (
     (req.user.role === "doctor" &&
       req.user.verificationStatus !== "approved") ||

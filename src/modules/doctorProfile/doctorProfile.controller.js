@@ -196,8 +196,13 @@ class DoctorProfileController {
     try {
       const { id } = req.params;
       const materialData = req.body;
+      const file = req.file; // Certificate file
 
-      const profile = await doctorProfileService.addMaterial(id, materialData);
+      const profile = await doctorProfileService.addMaterial(
+        id,
+        materialData,
+        file
+      );
 
       res.status(200).json({
         success: true,
@@ -277,8 +282,6 @@ class DoctorProfileController {
       });
     }
   }
-
-  
 
   // Get doctor statistics
   async getDoctorStatistics(req, res) {

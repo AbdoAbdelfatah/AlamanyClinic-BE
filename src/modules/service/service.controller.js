@@ -5,15 +5,40 @@ import { successResponse } from "../../utils/response.util.js";
 class ServiceController {
   async createService(req, res, next) {
     try {
-      const { name, description, coverImage, category, price, duration } =
-        req.body;
+      const { name, description, category, duration } = req.body;
+      console.log("Service creation request body:", req.body.price.min);
+      // Parse nested price object from form-data
+      const price = {
+        min: Number(req.body.price.min) || 0,
+        max: Number(req.body.price.max) || 0,
+        currency: req.body.price.currency || "USD",
+      };
+
+      // Validate price range
+      if (price.min < 0 || price.max < 0) {
+        throw new ErrorClass("Price cannot be negative", 400);
+      }
+
+      if (price.max > 0 && price.min > price.max) {
+        throw new ErrorClass(
+          "Minimum price cannot be greater than maximum price",
+          400
+        );
+      }
+
+      // Handle file upload (multer)
+      const coverImage = req.file ? req.file.path : null;
 
       // Check if service already exists
-      const existingService = await Service.findOne({ name });
+      const existingService = await Service.findOne({
+        name: { $regex: new RegExp(`^${name}$`, "i") }, // Case-insensitive check
+      });
+
       if (existingService) {
         throw new ErrorClass("Service with this name already exists", 400);
       }
 
+      // Create service
       const service = await Service.create({
         name,
         description,

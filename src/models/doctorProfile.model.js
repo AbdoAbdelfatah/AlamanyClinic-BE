@@ -62,6 +62,7 @@ const doctorProfileSchema = new mongoose.Schema(
             "Other",
           ],
         },
+        fileUrl: String, // Cloudinary URL
         brand: String,
         description: String,
       },
@@ -92,6 +93,24 @@ const doctorProfileSchema = new mongoose.Schema(
       type: String,
       maxlength: [1000, "Bio cannot exceed 1000 characters"],
     },
+    officeHours: [
+      {
+        day: {
+          type: String,
+          enum: [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ],
+        },
+        open: String, // e.g., "09:00 AM"
+        close: String, // e.g., "05:00 PM"
+      },
+    ],
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,

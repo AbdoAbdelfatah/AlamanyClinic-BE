@@ -10,6 +10,7 @@ import {
   checkDoctorVerification,
   protect,
   authorize,
+  verifyEmail,
 } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -33,6 +34,7 @@ router.get("/:id/statistics", doctorProfileController.getDoctorStatistics);
 router.post(
   "/",
   protect,
+  verifyEmail,
   checkDoctorVerification,
   uploadProfilePicture.single("picture"), // Upload profile picture
   handleMulterError,
@@ -42,6 +44,7 @@ router.post(
 router.get(
   "/me/profile",
   protect,
+  verifyEmail,
   checkDoctorVerification,
   doctorProfileController.getMyProfile
 );
@@ -49,6 +52,7 @@ router.get(
 router.put(
   "/me/profile",
   protect,
+  verifyEmail,
   checkDoctorVerification,
   uploadProfilePicture.single("picture"), // Upload profile picture
   handleMulterError,
@@ -58,6 +62,7 @@ router.put(
 router.delete(
   "/:id",
   protect,
+  verifyEmail,
   authorize("admin"),
   doctorProfileController.deleteDoctorProfile
 );
@@ -66,6 +71,7 @@ router.delete(
 router.post(
   "/:id/certificates",
   protect,
+  verifyEmail,
   checkDoctorVerification,
   uploadCertificate.single("certificate"), // Upload certificate file
   handleMulterError,
@@ -75,6 +81,7 @@ router.post(
 router.delete(
   "/:id/certificates/:certificateId",
   protect,
+  verifyEmail,
   checkDoctorVerification,
   doctorProfileController.removeCertificate
 );
@@ -83,13 +90,17 @@ router.delete(
 router.post(
   "/:id/materials",
   protect,
+  verifyEmail,
   checkDoctorVerification,
+  uploadCertificate.single("material"), // Upload material file
+  handleMulterError,
   doctorProfileController.addMaterial
 );
 
 router.delete(
   "/:id/materials/:materialId",
   protect,
+  verifyEmail,
   checkDoctorVerification,
   doctorProfileController.removeMaterial
 );
@@ -98,6 +109,7 @@ router.delete(
 router.post(
   "/:id/cases",
   protect,
+  verifyEmail,
   checkDoctorVerification,
   uploadCasePhotos.fields([
     { name: "beforePhoto", maxCount: 1 },
@@ -110,6 +122,7 @@ router.post(
 router.delete(
   "/:id/cases/:caseId",
   protect,
+  verifyEmail,
   checkDoctorVerification,
   doctorProfileController.removePreviousCase
 );

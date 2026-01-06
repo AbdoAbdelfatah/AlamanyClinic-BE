@@ -113,6 +113,10 @@ export const loginUser = async (email, password) => {
   return { user: userResponse, accessToken, refreshToken };
 };
 
+export const getUserByEmail = async (email) => {
+  const user = await User.findOne({ email });
+  return user;
+};
 // Verify email
 export const verifyUserEmail = async (token) => {
   // Hash the token
@@ -299,4 +303,174 @@ export const getUser = async (userId) => {
   }
 
   return user;
+};
+
+// Register with Gmail
+export const registerWithGmail = async (idToken) => {
+  if (!idToken) {
+    throw new ErrorClass(
+      "Google token is required",
+      400,
+      null,
+      "registerWithGmail"
+    );
+  }
+
+  try {
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const {
+      email,
+      given_name,
+      family_name,
+      sub: googleId,
+      email_verified,
+      picture,
+    } = payload;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new ErrorClass(
+        "Email already registered",
+        400,
+        null,
+        "registerWithGmail"
+      );
+    }
+
+    // Create new user with Gmail
+    const user = await User.create({
+      email,
+      firstName: given_name,
+      lastName: family_name,
+      googleId,
+      isEmailVerified: email_verified,
+      role: "patient", // Default role for Gmail users
+      profileImage: picture,
+    });
+
+    // Generate tokens
+    const tokenPayload = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+    };
+    const { accessToken, refreshToken } = generateTokenPair(tokenPayload);
+
+    // Save refresh token
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Return user without sensitive data
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.refreshToken;
+
+    return { user: userResponse, accessToken, refreshToken };
+  } catch (error) {
+    if (error instanceof ErrorClass) throw error;
+    throw new ErrorClass(
+      "Gmail registration failed",
+      401,
+      error.message,
+      "registerWithGmail"
+    );
+  }
+};
+
+// Login with Gmail
+export const loginWithGmail = async (idToken) => {
+  if (!idToken) {
+    throw new ErrorClass(
+      "Google token is required",
+      400,
+      null,
+      "loginWithGmail"
+    );
+  }
+
+  try {
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const {
+      email,
+      given_name,
+      family_name,
+      sub: googleId,
+      email_verified,
+      picture,
+    } = payload;
+
+    // Find user
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user if doesn't exist
+      user = await User.create({
+        email,
+        firstName: given_name,
+        lastName: family_name,
+        googleId,
+        isEmailVerified: email_verified,
+        role: "patient",
+        profileImage: picture,
+      });
+    } else if (!user.googleId) {
+      // Link Google account to existing user
+      user.googleId = googleId;
+      user.isEmailVerified = email_verified || user.isEmailVerified;
+      if (picture && !user.profileImage) {
+        user.profileImage = picture;
+      }
+      await user.save();
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      throw new ErrorClass(
+        "Account is deactivated",
+        403,
+        null,
+        "loginWithGmail"
+      );
+    }
+
+    // Generate tokens
+    const tokenPayload = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+    };
+    const { accessToken, refreshToken } = generateTokenPair(tokenPayload);
+
+    // Save refresh token
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Return user without sensitive data
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.refreshToken;
+
+    return { user: userResponse, accessToken, refreshToken };
+  } catch (error) {
+    if (error instanceof ErrorClass) throw error;
+    throw new ErrorClass(
+      "Gmail login failed",
+      401,
+      error.message,
+      "loginWithGmail"
+    );
+  }
 };

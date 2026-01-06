@@ -426,6 +426,44 @@ class DoctorProfileService {
     }
   }
 
+  // Add office hours
+  async addOfficeHours(profileId, officeHoursData) {
+    try {
+      const profile = await DoctorProfile.findByIdAndUpdate(
+        profileId,
+        { $push: { officeHours: officeHoursData } },
+        { new: true, runValidators: true }
+      ).populate("user", "-password");
+
+      if (!profile) {
+        throw new Error("Doctor profile not found");
+      }
+
+      return profile;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Remove office hours
+  async removeOfficeHours(profileId, officeHoursId) {
+    try {
+      const profile = await DoctorProfile.findByIdAndUpdate(
+        profileId,
+        { $pull: { officeHours: { _id: officeHoursId } } },
+        { new: true }
+      ).populate("user", "-password");
+
+      if (!profile) {
+        throw new Error("Doctor profile not found");
+      }
+
+      return profile;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Helper method to extract public ID from Cloudinary URL
   extractPublicId(url) {
     try {

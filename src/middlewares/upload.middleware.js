@@ -8,7 +8,7 @@ import {
 // File filter for images only
 const imageFileFilter = (req, file, cb) => {
   const allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-  
+
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -27,7 +27,7 @@ const certificateFileFilter = (req, file, cb) => {
     "image/png",
     "application/pdf",
   ];
-  
+
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -63,13 +63,22 @@ const uploadCasePhotos = multer({
   },
 });
 
+const uploadBlogCover = multer({
+  storage: profilePictureStorage,
+  fileFilter: imageFileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+});
+
 // Error handling middleware for multer
 const handleMulterError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,
-        message: "File size is too large. Maximum size allowed is 5MB for images and 10MB for certificates.",
+        message:
+          "File size is too large. Maximum size allowed is 5MB for images and 10MB for certificates.",
       });
     }
     if (err.code === "LIMIT_UNEXPECTED_FILE") {
@@ -83,14 +92,14 @@ const handleMulterError = (err, req, res, next) => {
       message: err.message,
     });
   }
-  
+
   if (err) {
     return res.status(400).json({
       success: false,
       message: err.message || "File upload failed.",
     });
   }
-  
+
   next();
 };
 
@@ -98,5 +107,6 @@ export {
   uploadProfilePicture,
   uploadCertificate,
   uploadCasePhotos,
+  uploadBlogCover,
   handleMulterError,
 };

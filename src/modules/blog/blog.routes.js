@@ -6,6 +6,10 @@ import {
   checkDoctorVerification,
   verifyEmail,
 } from "../../middlewares/auth.middleware.js";
+import {
+  handleMulterError,
+  uploadBlogCover,
+} from "../../middlewares/upload.middleware.js";
 
 const router = express.Router();
 
@@ -18,6 +22,8 @@ router.post(
   protect,
   verifyEmail,
   checkDoctorVerification,
+  uploadBlogCover.single("coverImage"),
+  handleMulterError,
   blogController.createBlog
 );
 
@@ -26,7 +32,7 @@ router.delete(
   "/:id",
   protect,
   verifyEmail,
-  authorize("Admin"),
+  authorize("admin"),
   blogController.deleteBlog
 );
 
