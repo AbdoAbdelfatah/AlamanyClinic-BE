@@ -11,12 +11,14 @@ import { globalErrorHandler } from "./middlewares/globalError.middleware.js";
 const app = express();
 
 // CORS configuration
+// Option 1: Simple CORS setup (allows both origins)
 const corsOptions = {
-  origin: "https://alamany-dental-clinic.vercel.app",
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: ["https://alamany-dental-clinic.vercel.app", "http://localhost:4200"],
+  credentials: true, // Allow cookies and authentication headers
+  optionsSuccessStatus: 200,
 };
+
+app.use(cors(corsOptions));
 
 // Middleware
 app.use(cors(corsOptions));
