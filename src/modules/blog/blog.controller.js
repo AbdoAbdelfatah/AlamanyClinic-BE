@@ -81,6 +81,28 @@ class BlogController {
     }
   }
 
+  // @desc    Get blog by ID
+  // @route   GET /api/blogs/:id
+  // @access  Public
+  async getBlogById(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const blog = await Blog.findById(id).populate(
+        "author",
+        "name specialization profileImage"
+      );
+
+      if (!blog) {
+        throw new ErrorClass("Blog not found", 404);
+      }
+
+      return successResponse(res, 200, "Blog retrieved successfully", blog);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // @desc    Delete blog (Admin only)
   // @route   DELETE /api/blogs/:id
   // @access  Private/Admin

@@ -15,6 +15,7 @@ const router = express.Router();
 
 // Public routes
 router.get("/", blogController.getAllBlogs);
+router.get("/:id", blogController.getBlogById);
 
 // Protected routes (Doctor only for create and update)
 router.post(
