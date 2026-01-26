@@ -2,11 +2,30 @@ import mongoose from "mongoose";
 
 const doctorProfileSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+    email: {
+      type: String,
+      required: [true, "Email is required"],
       unique: true,
+      lowercase: true,
+      trim: true,
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        "Please enter a valid email",
+      ],
+    },
+    firstName: {
+      type: String,
+      required: [true, "First name is required"],
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: [true, "Last name is required"],
+      trim: true,
+    },
+    phone: {
+      type: String,
+      required: false,
     },
     picture: {
       type: String,
@@ -120,7 +139,7 @@ const doctorProfileSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // Adds createdAt and updatedAt fields
-  }
+  },
 );
 
 // Indexes for better query performance

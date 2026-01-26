@@ -3,14 +3,13 @@ import { ErrorClass } from "../../utils/errorClass.util.js";
 import { successResponse } from "../../utils/response.util.js";
 
 class BlogController {
-  // @desc    Create new blog (Doctor only)
+  // @desc    Create new blog (Admin only)
   // @route   POST /api/blogs
-  // @access  Private/Doctor
+  // @access  Private/Admin
   async createBlog(req, res, next) {
     try {
       const { content, title, summary, tags, category } = req.body;
       const coverImage = req.file ? req.file.path : null;
-      const authorId = req.user.id; // Assuming user info is attached by auth middleware
 
       const blog = await Blog.create({
         title,
@@ -19,10 +18,7 @@ class BlogController {
         tags,
         coverImage,
         category,
-        author: authorId,
       });
-
-      await blog.populate("author", "name specialization");
 
       return successResponse(res, 201, "Blog created successfully", blog);
     } catch (error) {
@@ -98,6 +94,43 @@ class BlogController {
       }
 
       return successResponse(res, 200, "Blog retrieved successfully", blog);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // @desc    Update blog (Admin only)
+  // @route   PUT /api/blogs/:id
+  // @access  Private/Admin
+  async updateBlog(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { content, title, summary, tags, category } = req.body;
+      const coverImage = req.file ? req.file.path : null;
+
+      const updateData = {
+        title,
+        content,
+        summary,
+        tags,
+        category,
+      };
+
+      if (coverImage) {
+        updateData.coverImage = coverImage;
+      }
+
+      const blog = await Blog.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true, runValidators: true }
+      );
+
+      if (!blog) {
+        throw new ErrorClass("Blog not found", 404);
+      }
+
+      return successResponse(res, 200, "Blog updated successfully", blog);
     } catch (error) {
       next(error);
     }

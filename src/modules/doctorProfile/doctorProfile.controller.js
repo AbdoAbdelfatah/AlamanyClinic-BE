@@ -1,17 +1,15 @@
 import doctorProfileService from "./doctorProfile.service.js";
 
 class DoctorProfileController {
-  // Create doctor profile
+  // Create doctor profile (admin only)
   async createDoctorProfile(req, res) {
     try {
-      const userId = req.user.id; // Assuming user ID comes from auth middleware
       const profileData = req.body;
       const file = req.file; // Single file upload for profile picture
 
       const profile = await doctorProfileService.createDoctorProfile(
-        userId,
         profileData,
-        file
+        file,
       );
 
       res.status(201).json({
@@ -44,7 +42,7 @@ class DoctorProfileController {
 
       const result = await doctorProfileService.getAllDoctorProfiles(
         filters,
-        options
+        options,
       );
 
       res.status(200).json({
@@ -78,37 +76,17 @@ class DoctorProfileController {
     }
   }
 
-  // Get current doctor profile (authenticated user)
-  async getMyProfile(req, res) {
+  // Update doctor profile by ID (admin only)
+  async updateDoctorProfile(req, res) {
     try {
-      const userId = req.user.id;
-      const profile = await doctorProfileService.getDoctorProfileByUserId(
-        userId
-      );
-
-      res.status(200).json({
-        success: true,
-        data: profile,
-      });
-    } catch (error) {
-      res.status(404).json({
-        success: false,
-        message: error.message || "Doctor profile not found",
-      });
-    }
-  }
-
-  // Update current doctor profile (authenticated user)
-  async updateMyProfile(req, res) {
-    try {
-      const userId = req.user.id;
+      const { id } = req.params;
       const updateData = req.body;
       const file = req.file; // Profile picture update
 
-      const profile = await doctorProfileService.updateDoctorProfileByUserId(
-        userId,
+      const profile = await doctorProfileService.updateDoctorProfile(
+        id,
         updateData,
-        file
+        file,
       );
 
       res.status(200).json({
@@ -124,7 +102,33 @@ class DoctorProfileController {
     }
   }
 
-  // Delete doctor profile
+  // Update current doctor profile (authenticated user)
+  async updateMyProfile(req, res) {
+    try {
+      const userId = req.user.id;
+      const updateData = req.body;
+      const file = req.file; // Profile picture update
+
+      const profile = await doctorProfileService.updateDoctorProfile(
+        id,
+        updateData,
+        file,
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Profile updated successfully",
+        data: profile,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message || "Failed to update profile",
+      });
+    }
+  }
+
+  // Delete doctor profile (admin only)
   async deleteDoctorProfile(req, res) {
     try {
       const { id } = req.params;
@@ -142,7 +146,7 @@ class DoctorProfileController {
     }
   }
 
-  // Add certificate
+  // Add certificate (admin only)
   async addCertificate(req, res) {
     try {
       const { id } = req.params;
@@ -152,7 +156,7 @@ class DoctorProfileController {
       const profile = await doctorProfileService.addCertificate(
         id,
         certificateData,
-        file
+        file,
       );
 
       res.status(200).json({
@@ -168,14 +172,14 @@ class DoctorProfileController {
     }
   }
 
-  // Remove certificate
+  // Remove certificate (admin only)
   async removeCertificate(req, res) {
     try {
       const { id, certificateId } = req.params;
 
       const profile = await doctorProfileService.removeCertificate(
         id,
-        certificateId
+        certificateId,
       );
 
       res.status(200).json({
@@ -191,7 +195,7 @@ class DoctorProfileController {
     }
   }
 
-  // Add material
+  // Add material (admin only)
   async addMaterial(req, res) {
     try {
       const { id } = req.params;
@@ -201,7 +205,7 @@ class DoctorProfileController {
       const profile = await doctorProfileService.addMaterial(
         id,
         materialData,
-        file
+        file,
       );
 
       res.status(200).json({
@@ -217,7 +221,7 @@ class DoctorProfileController {
     }
   }
 
-  // Remove material
+  // Remove material (admin only)
   async removeMaterial(req, res) {
     try {
       const { id, materialId } = req.params;
@@ -237,7 +241,7 @@ class DoctorProfileController {
     }
   }
 
-  // Add previous case
+  // Add previous case (admin only)
   async addPreviousCase(req, res) {
     try {
       const { id } = req.params;
@@ -247,7 +251,7 @@ class DoctorProfileController {
       const profile = await doctorProfileService.addPreviousCase(
         id,
         caseData,
-        files
+        files,
       );
 
       res.status(200).json({
@@ -263,7 +267,7 @@ class DoctorProfileController {
     }
   }
 
-  // Remove previous case
+  // Remove previous case (admin only)
   async removePreviousCase(req, res) {
     try {
       const { id, caseId } = req.params;
@@ -297,6 +301,53 @@ class DoctorProfileController {
       res.status(404).json({
         success: false,
         message: error.message || "Failed to fetch statistics",
+      });
+    }
+  }
+
+  // Add office hours (admin only)
+  async addOfficeHours(req, res) {
+    try {
+      const { id } = req.params;
+      const officeHoursData = req.body;
+
+      const profile = await doctorProfileService.addOfficeHours(
+        id,
+        officeHoursData,
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Office hours added successfully",
+        data: profile,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message || "Failed to add office hours",
+      });
+    }
+  }
+
+  // Remove office hours (admin only)
+  async removeOfficeHours(req, res) {
+    try {
+      const { id, officeHoursId } = req.params;
+
+      const profile = await doctorProfileService.removeOfficeHours(
+        id,
+        officeHoursId,
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Office hours removed successfully",
+        data: profile,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message || "Failed to remove office hours",
       });
     }
   }

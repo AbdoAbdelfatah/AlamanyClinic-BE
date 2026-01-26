@@ -7,14 +7,9 @@ import {
 
 class DoctorProfileService {
   // Create a new doctor profile
-  async createDoctorProfile(userId, profileData, file) {
+  async createDoctorProfile(profileData, file) {
     try {
-      const existingProfile = await DoctorProfile.findOne({ user: userId });
-      if (existingProfile) {
-        throw new Error("Doctor profile already exists for this user");
-      }
-
-      const data = { user: userId, ...profileData };
+      const data = { ...profileData };
 
       // Add profile picture if uploaded
       if (file) {
@@ -23,7 +18,7 @@ class DoctorProfileService {
 
       const doctorProfile = new DoctorProfile(data);
       await doctorProfile.save();
-      return await doctorProfile.populate("user", "-password");
+      return doctorProfile;
     } catch (error) {
       throw error;
     }
@@ -72,7 +67,6 @@ class DoctorProfileService {
       const total = await DoctorProfile.countDocuments(query);
 
       const doctors = await DoctorProfile.find(query)
-        .populate("user", "-password")
         .populate("reviews")
         .skip(skip)
         .limit(parseInt(limit))
@@ -95,35 +89,13 @@ class DoctorProfileService {
   // Get doctor profile by ID
   async getDoctorProfileById(profileId) {
     try {
-      const profile = await DoctorProfile.findById(profileId)
-        .populate("user", "-password")
-        .populate({
-          path: "reviews",
-          populate: { path: "patient", select: "name email" },
-        });
+      const profile = await DoctorProfile.findById(profileId).populate({
+        path: "reviews",
+        populate: { path: "patient", select: "name email" },
+      });
 
       if (!profile) {
         throw new Error("Doctor profile not found");
-      }
-
-      return profile;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // Get doctor profile by user ID
-  async getDoctorProfileByUserId(userId) {
-    try {
-      const profile = await DoctorProfile.findOne({ user: userId })
-        .populate("user", "-password")
-        .populate({
-          path: "reviews",
-          populate: { path: "patient", select: "name email" },
-        });
-
-      if (!profile) {
-        throw new Error("Doctor profile not found for this user");
       }
 
       return profile;
@@ -156,7 +128,7 @@ class DoctorProfileService {
         profileId,
         { $set: updateData },
         { new: true, runValidators: true }
-      ).populate("user", "-password");
+      );
 
       return updatedProfile;
     } catch (error) {
@@ -225,7 +197,7 @@ class DoctorProfileService {
         profileId,
         { $push: { certificates: certificateData } },
         { new: true, runValidators: true }
-      ).populate("user", "-password");
+      );
 
       if (!profile) {
         throw new Error("Doctor profile not found");
@@ -260,7 +232,7 @@ class DoctorProfileService {
         profileId,
         { $pull: { certificates: { _id: certificateId } } },
         { new: true }
-      ).populate("user", "-password");
+      );
 
       return updatedProfile;
     } catch (error) {
@@ -275,7 +247,7 @@ class DoctorProfileService {
         profileId,
         { $push: { materials: materialData } },
         { new: true, runValidators: true }
-      ).populate("user", "-password");
+      );
 
       if (!profile) {
         throw new Error("Doctor profile not found");
@@ -294,7 +266,7 @@ class DoctorProfileService {
         profileId,
         { $pull: { materials: { _id: materialId } } },
         { new: true }
-      ).populate("user", "-password");
+      );
 
       if (!profile) {
         throw new Error("Doctor profile not found");
@@ -328,7 +300,7 @@ class DoctorProfileService {
         profileId,
         { $push: { previousCases: caseData } },
         { new: true, runValidators: true }
-      ).populate("user", "-password");
+      );
 
       if (!profile) {
         throw new Error("Doctor profile not found");
@@ -371,22 +343,9 @@ class DoctorProfileService {
         profileId,
         { $pull: { previousCases: { _id: caseId } } },
         { new: true }
-      ).populate("user", "-password");
+      );
 
       return updatedProfile;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-   
-  async updateDoctorProfileByUserId(userId, updateData, file) {
-    try {
-      const profile = await DoctorProfile.findOne({ user: userId });
-      if (!profile) {
-        throw new Error("Doctor profile not found");
-      }
-      return await this.updateDoctorProfile(profile._id, updateData, file);
     } catch (error) {
       throw error;
     }
@@ -433,7 +392,7 @@ class DoctorProfileService {
         profileId,
         { $push: { officeHours: officeHoursData } },
         { new: true, runValidators: true }
-      ).populate("user", "-password");
+      );
 
       if (!profile) {
         throw new Error("Doctor profile not found");
@@ -452,7 +411,7 @@ class DoctorProfileService {
         profileId,
         { $pull: { officeHours: { _id: officeHoursId } } },
         { new: true }
-      ).populate("user", "-password");
+      );
 
       if (!profile) {
         throw new Error("Doctor profile not found");

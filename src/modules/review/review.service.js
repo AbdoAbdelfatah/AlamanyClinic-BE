@@ -3,14 +3,14 @@ import DoctorProfile from "../../models/doctorProfile.model.js";
 import mongoose from "mongoose";
 
 class ReviewService {
-  // Create a new review
-  async createReview(patientId, reviewData) {
+  // Create a new review (anyone can review)
+  async createReview(reviewData) {
     try {
       const { doctorId, rating, comment } = reviewData;
 
       // Validate required fields first
-      if (!doctorId || !rating || !comment) {
-        throw new Error("Doctor ID, rating, and comment are required");
+      if (!doctorId || !rating || !comment ) {
+        throw new Error("Doctor ID, rating and comment are required");
       }
 
       // Validate rating range
@@ -33,34 +33,14 @@ class ReviewService {
         throw new Error("Doctor profile not found");
       }
 
-      // Check if review already exists
-      const existingReview = await Review.findOne({
-        doctorProfile: doctorId,
-        patient: patientId,
-      });
-      if (existingReview) {
-        throw new Error(
-          "You have already reviewed this doctor. You can only submit one review per doctor"
-        );
-      }
-
       // Create new review
       const review = new Review({
         doctorProfile: doctorId,
-        patient: patientId,
         rating,
         comment: comment.trim(),
       });
 
       await review.save();
-
-      // Populate and return the review
-      // const populatedReview = await Review.findById(review._id)
-      //   .populate(
-      //     "doctorProfile",
-      //     "yearsOfExperience picture licenseNumber user"
-      //   )
-      //   .populate("patient", "firstName lastName email phone");
 
       return review;
     } catch (error) {
@@ -93,10 +73,9 @@ class ReviewService {
     const [total, reviews] = await Promise.all([
       Review.countDocuments({ doctorProfile: doctorId }),
       Review.find({ doctorProfile: doctorId })
-        .populate("patient", "firstName lastName email phone")
         .populate(
           "doctorProfile",
-          "yearsOfExperience picture licenseNumber user"
+          "yearsOfExperience picture licenseNumber"
         )
         .sort({ createdAt: -1 })
         .skip(skip)

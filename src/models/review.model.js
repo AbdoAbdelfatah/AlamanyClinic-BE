@@ -7,11 +7,6 @@ const reviewSchema = new mongoose.Schema(
       ref: "DoctorProfile",
       required: true,
     },
-    patient: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     rating: {
       type: Number,
       required: [true, "Rating is required"],
@@ -27,15 +22,11 @@ const reviewSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
-  }
+  },
 );
 
 // Indexes for better query performance
 reviewSchema.index({ doctorProfile: 1 });
-reviewSchema.index({ patient: 1 });
 reviewSchema.index({ rating: 1 });
-
-// Prevent duplicate reviews - one review per patient per doctor
-reviewSchema.index({ doctorProfile: 1, patient: 1 }, { unique: true });
 
 export default mongoose.models.Review || mongoose.model("Review", reviewSchema);

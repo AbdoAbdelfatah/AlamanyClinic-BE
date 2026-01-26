@@ -17,15 +17,25 @@ const router = express.Router();
 router.get("/", blogController.getAllBlogs);
 router.get("/:id", blogController.getBlogById);
 
-// Protected routes (Doctor only for create and update)
+// Protected routes (Admin only for create and update)
 router.post(
   "/",
   protect,
   verifyEmail,
-  checkDoctorVerification,
+  authorize("admin"),
   uploadBlogCover.single("coverImage"),
   handleMulterError,
-  blogController.createBlog
+  blogController.createBlog,
+);
+
+router.put(
+  "/:id",
+  protect,
+  verifyEmail,
+  authorize("admin"),
+  uploadBlogCover.single("coverImage"),
+  handleMulterError,
+  blogController.updateBlog,
 );
 
 // Protected routes (Admin only for delete)
@@ -34,7 +44,7 @@ router.delete(
   protect,
   verifyEmail,
   authorize("admin"),
-  blogController.deleteBlog
+  blogController.deleteBlog,
 );
 
 export default router;

@@ -26,11 +26,6 @@ const blogSchema = new mongoose.Schema(
       type: String, // Cloudinary URL
       default: null,
     },
-    author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "DoctorProfile",
-      required: true,
-    },
     category: {
       type: String,
       enum: [
@@ -46,7 +41,7 @@ const blogSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Indexes

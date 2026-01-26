@@ -12,9 +12,8 @@ const router = express.Router();
 // Get reviews for a specific doctor
 router.get("/doctor/:id", reviewController.getReviewsByDoctor);
 
-// Protected routes - require authentication
-// Create a new review (authenticated users)
-router.post("/", protect, verifyEmail, reviewController.createReview);
+// Public routes - anyone can create a review
+router.post("/", reviewController.createReview);
 
 // Admin only routes
 // Delete a review (admin only)
@@ -22,8 +21,8 @@ router.delete(
   "/:reviewId",
   protect,
   verifyEmail,
-  // authorize("admin"),
-  reviewController.deleteReview
+  authorize("admin"),
+  reviewController.deleteReview,
 );
 
 export default router;

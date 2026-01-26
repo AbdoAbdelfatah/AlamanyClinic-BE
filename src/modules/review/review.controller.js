@@ -1,13 +1,12 @@
 import reviewService from "./review.service.js";
 
 class ReviewController {
-  // Create a new review
+  // Create a new review (public - anyone can review)
   async createReview(req, res) {
     try {
-      const patientId = req.user.id; // From auth middleware
       const reviewData = req.body;
 
-      const review = await reviewService.createReview(patientId, reviewData);
+      const review = await reviewService.createReview(reviewData);
 
       res.status(201).json({
         success: true,

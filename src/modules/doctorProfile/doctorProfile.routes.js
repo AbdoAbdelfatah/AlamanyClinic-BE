@@ -26,105 +26,113 @@ router.get("/:id", doctorProfileController.getDoctorProfileById);
 
 router.get("/:id/statistics", doctorProfileController.getDoctorStatistics);
 
-// Protected routes - require authentication
-// Uncomment the middleware below when authentication is implemented
-// router.use(authenticate); // Apply authentication to all routes below
-
-// Doctor-specific routes - create and manage own profile
+// Protected routes - require admin authentication
+// Doctor profile creation (admin only)
 router.post(
   "/",
   protect,
   verifyEmail,
-  checkDoctorVerification,
-  uploadProfilePicture.single("picture"), // Upload profile picture
+  authorize("admin"),
+  uploadProfilePicture.single("picture"),
   handleMulterError,
-  doctorProfileController.createDoctorProfile
+  doctorProfileController.createDoctorProfile,
 );
 
-router.get(
-  "/me/profile",
-  protect,
-  verifyEmail,
-  checkDoctorVerification,
-  doctorProfileController.getMyProfile
-);
-
+// Update doctor profile by ID (admin only)
 router.put(
-  "/me/profile",
+  "/:id",
   protect,
   verifyEmail,
-  checkDoctorVerification,
-  uploadProfilePicture.single("picture"), // Upload profile picture
+  authorize("admin"),
+  uploadProfilePicture.single("picture"),
   handleMulterError,
-  doctorProfileController.updateMyProfile
+  doctorProfileController.updateDoctorProfile,
 );
 
+// Delete doctor profile (admin only)
 router.delete(
   "/:id",
   protect,
   verifyEmail,
   authorize("admin"),
-  doctorProfileController.deleteDoctorProfile
+  doctorProfileController.deleteDoctorProfile,
 );
 
-// Certificate management
+// Certificate management (admin only)
 router.post(
   "/:id/certificates",
   protect,
   verifyEmail,
-  checkDoctorVerification,
-  uploadCertificate.single("certificate"), // Upload certificate file
+  authorize("admin"),
+  uploadCertificate.single("certificate"),
   handleMulterError,
-  doctorProfileController.addCertificate
+  doctorProfileController.addCertificate,
 );
 
 router.delete(
   "/:id/certificates/:certificateId",
   protect,
   verifyEmail,
-  checkDoctorVerification,
-  doctorProfileController.removeCertificate
+  authorize("admin"),
+  doctorProfileController.removeCertificate,
 );
 
-// Material management
+// Material management (admin only)
 router.post(
   "/:id/materials",
   protect,
   verifyEmail,
-  checkDoctorVerification,
-  uploadCertificate.single("material"), // Upload material file
+  authorize("admin"),
+  uploadCertificate.single("material"),
   handleMulterError,
-  doctorProfileController.addMaterial
+  doctorProfileController.addMaterial,
 );
 
 router.delete(
   "/:id/materials/:materialId",
   protect,
   verifyEmail,
-  checkDoctorVerification,
-  doctorProfileController.removeMaterial
+  authorize("admin"),
+  doctorProfileController.removeMaterial,
 );
 
-// Previous cases management
+// Previous cases management (admin only)
 router.post(
   "/:id/cases",
   protect,
   verifyEmail,
-  checkDoctorVerification,
+  authorize("admin"),
   uploadCasePhotos.fields([
     { name: "beforePhoto", maxCount: 1 },
     { name: "afterPhoto", maxCount: 1 },
-  ]), // Upload before and after photos
+  ]),
   handleMulterError,
-  doctorProfileController.addPreviousCase
+  doctorProfileController.addPreviousCase,
 );
 
 router.delete(
   "/:id/cases/:caseId",
   protect,
   verifyEmail,
-  checkDoctorVerification,
-  doctorProfileController.removePreviousCase
+  authorize("admin"),
+  doctorProfileController.removePreviousCase,
+);
+
+// Office hours management (admin only)
+router.post(
+  "/:id/office-hours",
+  protect,
+  verifyEmail,
+  authorize("admin"),
+  doctorProfileController.addOfficeHours,
+);
+
+router.delete(
+  "/:id/office-hours/:officeHoursId",
+  protect,
+  verifyEmail,
+  authorize("admin"),
+  doctorProfileController.removeOfficeHours,
 );
 
 export default router;
