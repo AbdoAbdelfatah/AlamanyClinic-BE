@@ -44,6 +44,29 @@ const casePhotoStorage = new CloudinaryStorage({
   },
 });
 
+// Storage configuration for blog media (images + videos)
+const blogMediaStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "blog/media",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "mp4", "webm", "mov"],
+    resource_type: "auto", // Detects image vs video automatically
+  },
+});
+
+// Storage configuration for blog cover image
+const blogCoverStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "blog/covers",
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    transformation: [
+      { width: 1200, height: 630, crop: "fill" },
+      { quality: "auto" },
+    ],
+  },
+});
+
 // Delete file from Cloudinary
 const deleteFromCloudinary = async (publicId) => {
   try {
@@ -71,6 +94,8 @@ export {
   profilePictureStorage,
   certificateStorage,
   casePhotoStorage,
+  blogMediaStorage,
+  blogCoverStorage,
   deleteFromCloudinary,
   deleteMultipleFromCloudinary,
 };

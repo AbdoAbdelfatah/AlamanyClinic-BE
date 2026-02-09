@@ -1,10 +1,6 @@
 import express from "express";
 import reviewController from "./review.controller.js";
-import {
-  protect,
-  authorize,
-  verifyEmail,
-} from "../../middlewares/auth.middleware.js";
+import { protect, authorize } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
@@ -20,7 +16,6 @@ router.post("/", reviewController.createReview);
 router.delete(
   "/:reviewId",
   protect,
-  verifyEmail,
   authorize("admin"),
   reviewController.deleteReview,
 );

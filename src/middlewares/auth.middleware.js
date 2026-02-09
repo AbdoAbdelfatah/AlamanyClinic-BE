@@ -64,29 +64,10 @@ export const authorize = (...roles) => {
   };
 };
 
-// Verify email middleware
-export const verifyEmail = (req, res, next) => {
-  if (!req.user.isEmailVerified) {
-    return next(
-      new ErrorClass(
-        "Please verify your email to access this resource",
-        403,
-        null,
-        "verifyEmail"
-      )
-    );
-  }
-  next();
-};
-
-// Check doctor verification status
+// Check doctor verification status (for doctor role only; admin bypasses)
 export const checkDoctorVerification = (req, res, next) => {
-  console.log("User role and status:", req.user);
-  if (
-    (req.user.role === "doctor" &&
-      req.user.verificationStatus !== "approved") ||
-    req.user.role !== "doctor"
-  ) {
+  if (req.user.role !== "doctor") return next();
+  if (req.user.verificationStatus !== "approved") {
     return next(
       new ErrorClass(
         "Your doctor profile is not verified yet",

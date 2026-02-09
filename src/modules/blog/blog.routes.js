@@ -1,14 +1,10 @@
 import express from "express";
 import blogController from "./blog.controller.js";
-import {
-  protect,
-  authorize,
-  checkDoctorVerification,
-  verifyEmail,
-} from "../../middlewares/auth.middleware.js";
+import { protect, authorize } from "../../middlewares/auth.middleware.js";
 import {
   handleMulterError,
   uploadBlogCover,
+  uploadBlogMedia,
 } from "../../middlewares/upload.middleware.js";
 
 const router = express.Router();
@@ -21,9 +17,12 @@ router.get("/:id", blogController.getBlogById);
 router.post(
   "/",
   protect,
-  verifyEmail,
   authorize("admin"),
   uploadBlogCover.single("coverImage"),
+  uploadBlogMedia.fields([
+    { name: "images", maxCount: 10 },
+    { name: "videos", maxCount: 5 },
+  ]),
   handleMulterError,
   blogController.createBlog,
 );
@@ -31,9 +30,12 @@ router.post(
 router.put(
   "/:id",
   protect,
-  verifyEmail,
   authorize("admin"),
   uploadBlogCover.single("coverImage"),
+  uploadBlogMedia.fields([
+    { name: "images", maxCount: 10 },
+    { name: "videos", maxCount: 5 },
+  ]),
   handleMulterError,
   blogController.updateBlog,
 );
@@ -42,7 +44,6 @@ router.put(
 router.delete(
   "/:id",
   protect,
-  verifyEmail,
   authorize("admin"),
   blogController.deleteBlog,
 );

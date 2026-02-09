@@ -1,61 +1,36 @@
 import userServices from "./user.services.js";
+import { successResponse } from "../../utils/response.util.js";
 
 class UserController {
-  // Get all users
-  async getAllUsers(req, res) {
+  async getAllUsers(req, res, next) {
     try {
       const users = await userServices.getAllUsers();
-      res.status(200).json({
-        success: true,
-        data: users,
-      });
+      return successResponse(res, 200, "Users retrieved successfully", users);
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Failed to fetch users",
-      });
+      next(error);
     }
   }
-  // Update user
-  async updateUser(req, res) {
+
+  async updateUser(req, res, next) {
     try {
       const { userId } = req.params;
       const updateData = req.body;
       const updatedUser = await userServices.updateUser(userId, updateData);
-      let message = "User updated successfully";
-      if (updateData?.email) {
-        message +=
-          ". Please verify your new email address to complete the update.";
-      }
-      res.status(200).json({
-        success: true,
-        message: message,
-        data: updatedUser,
-      });
+      return successResponse(res, 200, "User updated successfully", updatedUser);
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Failed to update user",
-      });
+      next(error);
     }
   }
 
-  // Soft delete user
-  async softDeleteUser(req, res) {
+  async softDeleteUser(req, res, next) {
     try {
       const { userId } = req.params;
       const deletedUser = await userServices.softDeleteUser(userId);
-      res.status(200).json({
-        success: true,
-        message: "User deleted successfully",
-        data: deletedUser,
-      });
+      return successResponse(res, 200, "User deleted successfully", deletedUser);
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Failed to delete user",
-      });
+      next(error);
     }
   }
 }
+
 export default new UserController();

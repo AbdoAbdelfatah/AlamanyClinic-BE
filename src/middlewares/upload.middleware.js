@@ -3,6 +3,8 @@ import {
   profilePictureStorage,
   certificateStorage,
   casePhotoStorage,
+  blogCoverStorage,
+  blogMediaStorage,
 } from "../config/cloudinary.config.js";
 
 // File filter for images only
@@ -14,6 +16,30 @@ const imageFileFilter = (req, file, cb) => {
   } else {
     cb(
       new Error("Invalid file type. Only JPG, JPEG, PNG and WEBP are allowed."),
+      false
+    );
+  }
+};
+
+// File filter for blog media (images and videos)
+const imageVideoFileFilter = (req, file, cb) => {
+  const allowedMimes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "video/mp4",
+    "video/webm",
+    "video/quicktime", // .mov
+  ];
+
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error(
+        "Invalid file type. Only images (JPG, PNG, WEBP) and videos (MP4, WEBM, MOV) are allowed."
+      ),
       false
     );
   }
@@ -64,10 +90,18 @@ const uploadCasePhotos = multer({
 });
 
 const uploadBlogCover = multer({
-  storage: profilePictureStorage,
+  storage: blogCoverStorage,
   fileFilter: imageFileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024, // 5MB limit for cover
+  },
+});
+
+const uploadBlogMedia = multer({
+  storage: blogMediaStorage,
+  fileFilter: imageVideoFileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit for videos
   },
 });
 
@@ -78,7 +112,7 @@ const handleMulterError = (err, req, res, next) => {
       return res.status(400).json({
         success: false,
         message:
-          "File size is too large. Maximum size allowed is 5MB for images and 10MB for certificates.",
+          "File size is too large. Max: 5MB for images/cover, 10MB for certificates, 50MB for blog videos.",
       });
     }
     if (err.code === "LIMIT_UNEXPECTED_FILE") {
@@ -108,5 +142,6 @@ export {
   uploadCertificate,
   uploadCasePhotos,
   uploadBlogCover,
+  uploadBlogMedia,
   handleMulterError,
 };

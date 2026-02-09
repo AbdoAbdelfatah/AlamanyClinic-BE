@@ -6,7 +6,6 @@ class ServiceController {
   async createService(req, res, next) {
     try {
       const { name, description, category, duration } = req.body;
-      console.log("Service creation request body:", req.body.price.min);
       // Parse nested price object from form-data
       const price = {
         min: Number(req.body.price.min) || 0,

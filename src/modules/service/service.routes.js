@@ -1,10 +1,6 @@
 import express from "express";
 import { serviceController } from "./service.controller.js";
-import {
-  protect,
-  authorize,
-  verifyEmail,
-} from "../../middlewares/auth.middleware.js";
+import { protect, authorize } from "../../middlewares/auth.middleware.js";
 import {
   handleMulterError,
   uploadBlogCover,
@@ -19,7 +15,6 @@ router.get("/", serviceController.getAllServices);
 router.post(
   "/",
   protect,
-  verifyEmail,
   authorize("admin"),
   uploadBlogCover.single("coverImage"),
   handleMulterError,
@@ -28,7 +23,6 @@ router.post(
 router.delete(
   "/:id",
   protect,
-  verifyEmail,
   authorize("admin"),
   serviceController.deleteService
 );

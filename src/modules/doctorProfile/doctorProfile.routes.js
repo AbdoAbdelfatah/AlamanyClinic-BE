@@ -6,12 +6,7 @@ import {
   uploadCasePhotos,
   handleMulterError,
 } from "../../middlewares/upload.middleware.js";
-import {
-  checkDoctorVerification,
-  protect,
-  authorize,
-  verifyEmail,
-} from "../../middlewares/auth.middleware.js";
+import { protect, authorize } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
@@ -31,7 +26,6 @@ router.get("/:id/statistics", doctorProfileController.getDoctorStatistics);
 router.post(
   "/",
   protect,
-  verifyEmail,
   authorize("admin"),
   uploadProfilePicture.single("picture"),
   handleMulterError,
@@ -42,7 +36,6 @@ router.post(
 router.put(
   "/:id",
   protect,
-  verifyEmail,
   authorize("admin"),
   uploadProfilePicture.single("picture"),
   handleMulterError,
@@ -53,7 +46,6 @@ router.put(
 router.delete(
   "/:id",
   protect,
-  verifyEmail,
   authorize("admin"),
   doctorProfileController.deleteDoctorProfile,
 );
@@ -62,7 +54,6 @@ router.delete(
 router.post(
   "/:id/certificates",
   protect,
-  verifyEmail,
   authorize("admin"),
   uploadCertificate.single("certificate"),
   handleMulterError,
@@ -72,7 +63,6 @@ router.post(
 router.delete(
   "/:id/certificates/:certificateId",
   protect,
-  verifyEmail,
   authorize("admin"),
   doctorProfileController.removeCertificate,
 );
@@ -81,7 +71,6 @@ router.delete(
 router.post(
   "/:id/materials",
   protect,
-  verifyEmail,
   authorize("admin"),
   uploadCertificate.single("material"),
   handleMulterError,
@@ -91,7 +80,6 @@ router.post(
 router.delete(
   "/:id/materials/:materialId",
   protect,
-  verifyEmail,
   authorize("admin"),
   doctorProfileController.removeMaterial,
 );
@@ -100,7 +88,6 @@ router.delete(
 router.post(
   "/:id/cases",
   protect,
-  verifyEmail,
   authorize("admin"),
   uploadCasePhotos.fields([
     { name: "beforePhoto", maxCount: 1 },
@@ -113,7 +100,6 @@ router.post(
 router.delete(
   "/:id/cases/:caseId",
   protect,
-  verifyEmail,
   authorize("admin"),
   doctorProfileController.removePreviousCase,
 );
@@ -122,7 +108,6 @@ router.delete(
 router.post(
   "/:id/office-hours",
   protect,
-  verifyEmail,
   authorize("admin"),
   doctorProfileController.addOfficeHours,
 );
@@ -130,7 +115,6 @@ router.post(
 router.delete(
   "/:id/office-hours/:officeHoursId",
   protect,
-  verifyEmail,
   authorize("admin"),
   doctorProfileController.removeOfficeHours,
 );

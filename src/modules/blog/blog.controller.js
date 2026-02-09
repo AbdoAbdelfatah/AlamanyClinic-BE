@@ -9,7 +9,9 @@ class BlogController {
   async createBlog(req, res, next) {
     try {
       const { content, title, summary, tags, category } = req.body;
-      const coverImage = req.file ? req.file.path : null;
+      const coverImage = req.file?.path || null;
+      const images = req.files?.images?.map((f) => f.path) || [];
+      const videos = req.files?.videos?.map((f) => f.path) || [];
 
       const blog = await Blog.create({
         title,
@@ -17,6 +19,8 @@ class BlogController {
         summary,
         tags,
         coverImage,
+        images,
+        videos,
         category,
       });
 
@@ -31,18 +35,13 @@ class BlogController {
   // @access  Public
   async getAllBlogs(req, res, next) {
     try {
-      const { category, author, page = 1, limit = 10, search } = req.query;
+      const { category, page = 1, limit = 10, search } = req.query;
 
       const query = {};
 
       // Filter by category
       if (category) {
         query.category = category;
-      }
-
-      // Filter by author
-      if (author) {
-        query.author = author;
       }
 
       // Search by title or content
@@ -56,7 +55,6 @@ class BlogController {
       const skip = (Number(page) - 1) * Number(limit);
 
       const blogs = await Blog.find(query)
-        .populate("author", "name specialization profileImage")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit));
@@ -84,10 +82,7 @@ class BlogController {
     try {
       const { id } = req.params;
 
-      const blog = await Blog.findById(id).populate(
-        "author",
-        "name specialization profileImage"
-      );
+      const blog = await Blog.findById(id);
 
       if (!blog) {
         throw new ErrorClass("Blog not found", 404);
@@ -106,7 +101,9 @@ class BlogController {
     try {
       const { id } = req.params;
       const { content, title, summary, tags, category } = req.body;
-      const coverImage = req.file ? req.file.path : null;
+      const coverImage = req.file?.path || null;
+      const newImages = req.files?.images?.map((f) => f.path) || [];
+      const newVideos = req.files?.videos?.map((f) => f.path) || [];
 
       const updateData = {
         title,
@@ -120,15 +117,22 @@ class BlogController {
         updateData.coverImage = coverImage;
       }
 
+      const existingBlog = await Blog.findById(id);
+      if (!existingBlog) {
+        throw new ErrorClass("Blog not found", 404);
+      }
+
+      // Append new images/videos to existing
+      if (newImages.length > 0 || newVideos.length > 0) {
+        updateData.images = [...(existingBlog.images || []), ...newImages];
+        updateData.videos = [...(existingBlog.videos || []), ...newVideos];
+      }
+
       const blog = await Blog.findByIdAndUpdate(
         id,
         { $set: updateData },
-        { new: true, runValidators: true }
+        { new: true, runValidators: true },
       );
-
-      if (!blog) {
-        throw new ErrorClass("Blog not found", 404);
-      }
 
       return successResponse(res, 200, "Blog updated successfully", blog);
     } catch (error) {

@@ -16,9 +16,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: function () {
-        return !this.googleId; // Password required only if not using Google OAuth
-      },
+      required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
       select: false, // Don't include password in queries by default
     },
@@ -39,37 +37,21 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ["patient", "doctor", "admin"],
-      required: [true, "User role is required"],
-    },
-    googleId: {
-      type: String,
-      unique: true,
-      sparse: true, // Allows multiple null values
-    },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
+      default: "admin",
     },
     isActive: {
       type: Boolean,
       default: true,
     },
-    verificationStatus: {
-      // For doctors' profile verification from admin
-      type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
-    },
+
     refreshToken: {
       type: String,
       select: false,
     },
-    emailVerificationToken: String,
-    emailVerificationExpires: Date,
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
-  }
+  },
 );
 
 // Hash password before saving

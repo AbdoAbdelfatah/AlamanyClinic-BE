@@ -1,61 +1,40 @@
 import express from "express";
 import appointmentController from "./appointment.controller.js";
-import {
-  protect,
-  authorize,
-  verifyEmail,
-} from "../../middlewares/auth.middleware.js";
+import { asyncHandler } from "../../middlewares/asyncHandler.middleware.js";
+import { protect, authorize } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Public routes - anyone can book an appointment
-// Get all doctors for selection
-router.get("/doctors/list", appointmentController.getAllDoctors);
-
-// Get specific doctor's office hours
+router.get("/doctors/list", asyncHandler(appointmentController.getAllDoctors));
 router.get(
   "/doctors/:doctorId/office-hours",
-  appointmentController.getDoctorOfficeHours,
+  asyncHandler(appointmentController.getDoctorOfficeHours),
 );
+router.post("/", asyncHandler(appointmentController.createAppointment));
 
-// Create appointment
-router.post("/", appointmentController.createAppointment);
-
-// Admin only routes
-// Get all appointments
 router.get(
   "/",
   protect,
-  verifyEmail,
   authorize("admin"),
-  appointmentController.getAllAppointments,
+  asyncHandler(appointmentController.getAllAppointments),
 );
-
-// Get appointment by ID
 router.get(
   "/:id",
   protect,
-  verifyEmail,
   authorize("admin"),
-  appointmentController.getAppointmentById,
+  asyncHandler(appointmentController.getAppointmentById),
 );
-
-// Update appointment status
 router.put(
   "/:id/status",
   protect,
-  verifyEmail,
   authorize("admin"),
-  appointmentController.updateAppointmentStatus,
+  asyncHandler(appointmentController.updateAppointmentStatus),
 );
-
-// Delete appointment
 router.delete(
   "/:id",
   protect,
-  verifyEmail,
   authorize("admin"),
-  appointmentController.deleteAppointment,
+  asyncHandler(appointmentController.deleteAppointment),
 );
 
 export default router;

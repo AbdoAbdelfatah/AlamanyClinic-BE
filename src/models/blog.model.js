@@ -23,9 +23,19 @@ const blogSchema = new mongoose.Schema(
       },
     ],
     coverImage: {
-      type: String, // Cloudinary URL
+      type: String, // Cloudinary URL (multer + Cloudinary)
       default: null,
     },
+    images: [
+      {
+        type: String, // Cloudinary URLs for blog content images
+      },
+    ],
+    videos: [
+      {
+        type: String, // Cloudinary URLs for blog content videos
+      },
+    ],
     category: {
       type: String,
       enum: [
@@ -45,7 +55,7 @@ const blogSchema = new mongoose.Schema(
 );
 
 // Indexes
-blogSchema.index({ author: 1 });
+
 blogSchema.index({ category: 1 });
 
 export default mongoose.models.Blog || mongoose.model("Blog", blogSchema);
