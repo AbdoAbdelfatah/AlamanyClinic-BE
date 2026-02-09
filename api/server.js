@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
-import app from "./app.js";
-import { connectDB } from "./config/db.config.js";
+import app from "../src/app.js";
+import { connectDB } from "../src/config/db.config.js";
 import mongoose from "mongoose";
 
 const PORT = process.env.PORT || 3000;
@@ -13,7 +13,7 @@ const startServer = async () => {
     if (mongoose.connection.readyState === 0) {
       await connectDB();
     }
-    
+
     // Only start HTTP server locally (not on Vercel)
     if (!process.env.VERCEL) {
       app.listen(PORT, () => {
