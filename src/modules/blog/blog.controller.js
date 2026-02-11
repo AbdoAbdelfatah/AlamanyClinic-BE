@@ -9,7 +9,7 @@ class BlogController {
   async createBlog(req, res, next) {
     try {
       const { content, title, summary, tags, category } = req.body;
-      const coverImage = req.file?.path || null;
+      const coverImage = req.files?.coverImage?.[0]?.path || null;
       const images = req.files?.images?.map((f) => f.path) || [];
       const videos = req.files?.videos?.map((f) => f.path) || [];
 
@@ -101,7 +101,7 @@ class BlogController {
     try {
       const { id } = req.params;
       const { content, title, summary, tags, category } = req.body;
-      const coverImage = req.file?.path || null;
+      const coverImage = req.files?.coverImage?.[0]?.path || null;
       const newImages = req.files?.images?.map((f) => f.path) || [];
       const newVideos = req.files?.videos?.map((f) => f.path) || [];
 

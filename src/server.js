@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
+
 import app from "./app.js";
 import { connectDB } from "./config/db.config.js";
 import mongoose from "mongoose";
 
 const PORT = process.env.PORT || 3000;
-
 // Initialize database connection (works for both local and Vercel)
 const startServer = async () => {
   try {

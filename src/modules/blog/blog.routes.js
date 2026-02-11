@@ -3,8 +3,8 @@ import blogController from "./blog.controller.js";
 import { protect, authorize } from "../../middlewares/auth.middleware.js";
 import {
   handleMulterError,
-  uploadBlogCover,
   uploadBlogMedia,
+  multerErrorWrapper,
 } from "../../middlewares/upload.middleware.js";
 
 const router = express.Router();
@@ -18,12 +18,13 @@ router.post(
   "/",
   protect,
   authorize("admin"),
-  uploadBlogCover.single("coverImage"),
-  uploadBlogMedia.fields([
-    { name: "images", maxCount: 10 },
-    { name: "videos", maxCount: 5 },
-  ]),
-  handleMulterError,
+  multerErrorWrapper(
+    uploadBlogMedia.fields([
+      { name: "coverImage", maxCount: 1 },
+      { name: "images", maxCount: 10 },
+      { name: "videos", maxCount: 5 },
+    ])
+  ),
   blogController.createBlog,
 );
 
@@ -31,12 +32,13 @@ router.put(
   "/:id",
   protect,
   authorize("admin"),
-  uploadBlogCover.single("coverImage"),
-  uploadBlogMedia.fields([
-    { name: "images", maxCount: 10 },
-    { name: "videos", maxCount: 5 },
-  ]),
-  handleMulterError,
+  multerErrorWrapper(
+    uploadBlogMedia.fields([
+      { name: "coverImage", maxCount: 1 },
+      { name: "images", maxCount: 10 },
+      { name: "videos", maxCount: 5 },
+    ])
+  ),
   blogController.updateBlog,
 );
 

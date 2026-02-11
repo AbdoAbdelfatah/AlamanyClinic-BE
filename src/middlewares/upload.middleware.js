@@ -16,7 +16,7 @@ const imageFileFilter = (req, file, cb) => {
   } else {
     cb(
       new Error("Invalid file type. Only JPG, JPEG, PNG and WEBP are allowed."),
-      false
+      false,
     );
   }
 };
@@ -38,9 +38,9 @@ const imageVideoFileFilter = (req, file, cb) => {
   } else {
     cb(
       new Error(
-        "Invalid file type. Only images (JPG, PNG, WEBP) and videos (MP4, WEBM, MOV) are allowed."
+        "Invalid file type. Only images (JPG, PNG, WEBP) and videos (MP4, WEBM, MOV) are allowed.",
       ),
-      false
+      false,
     );
   }
 };
@@ -59,7 +59,7 @@ const certificateFileFilter = (req, file, cb) => {
   } else {
     cb(
       new Error("Invalid file type. Only JPG, JPEG, PNG and PDF are allowed."),
-      false
+      false,
     );
   }
 };
@@ -128,13 +128,28 @@ const handleMulterError = (err, req, res, next) => {
   }
 
   if (err) {
+    console.error("Upload error:", err);
     return res.status(400).json({
       success: false,
-      message: err.message || "File upload failed.",
+      message: err.message || "--File upload failed.",
+      error: process.env.NODE_ENV === "development" ? err.toString() : undefined,
     });
   }
 
   next();
+};
+
+// Wrapper to handle multer middleware errors properly
+const multerErrorWrapper = (multerMiddleware) => {
+  return (req, res, next) => {
+    multerMiddleware(req, res, (err) => {
+      if (err) {
+        handleMulterError(err, req, res, next);
+      } else {
+        next();
+      }
+    });
+  };
 };
 
 export {
@@ -144,4 +159,5 @@ export {
   uploadBlogCover,
   uploadBlogMedia,
   handleMulterError,
+  multerErrorWrapper,
 };
