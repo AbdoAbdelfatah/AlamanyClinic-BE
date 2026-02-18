@@ -130,12 +130,6 @@ const doctorProfileSchema = new mongoose.Schema(
         close: String, // e.g., "05:00 PM"
       },
     ],
-    reviews: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Review",
-      },
-    ],
   },
   {
     timestamps: true, // Adds createdAt and updatedAt fields

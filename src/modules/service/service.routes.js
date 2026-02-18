@@ -20,6 +20,16 @@ router.post(
   handleMulterError,
   serviceController.createService
 );
+
+router.put(
+  "/:id",
+  protect,
+  authorize("admin"),
+  uploadBlogCover.single("coverImage"),
+  handleMulterError,
+  serviceController.updateService
+);
+
 router.delete(
   "/:id",
   protect,

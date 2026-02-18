@@ -1,8 +1,10 @@
 import express from "express";
 import doctorProfileController from "./doctorProfile.controller.js";
+import { asyncHandler } from "../../middlewares/asyncHandler.middleware.js";
 import {
   uploadProfilePicture,
   uploadCertificate,
+  uploadMaterial,
   uploadCasePhotos,
   handleMulterError,
 } from "../../middlewares/upload.middleware.js";
@@ -10,81 +12,89 @@ import { protect, authorize } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Middleware imports (adjust paths according to your project structure)
-// import { authenticate } from "../middlewares/auth.middleware.js";
-// import { isDoctor, isAdmin } from "../middlewares/role.middleware.js";
-
-// Public routes - accessible to everyone
+// ==================== Public Routes ====================
+// Get all doctor profiles with filters and pagination
 router.get("/", doctorProfileController.getAllDoctorProfiles);
 
+// Get doctor profile by ID
 router.get("/:id", doctorProfileController.getDoctorProfileById);
 
+// Get doctor statistics
 router.get("/:id/statistics", doctorProfileController.getDoctorStatistics);
 
-// Protected routes - require admin authentication
-// Doctor profile creation (admin only)
+// ==================== Protected Routes - Admin Only ====================
+
+// Create new doctor profile
 router.post(
   "/",
   protect,
   authorize("admin"),
   uploadProfilePicture.single("picture"),
   handleMulterError,
-  doctorProfileController.createDoctorProfile,
+  doctorProfileController.createDoctorProfile
 );
 
-// Update doctor profile by ID (admin only)
+// Update doctor profile by ID
 router.put(
   "/:id",
   protect,
   authorize("admin"),
   uploadProfilePicture.single("picture"),
   handleMulterError,
-  doctorProfileController.updateDoctorProfile,
+  doctorProfileController.updateDoctorProfile
 );
 
-// Delete doctor profile (admin only)
+// Delete doctor profile
 router.delete(
   "/:id",
   protect,
   authorize("admin"),
-  doctorProfileController.deleteDoctorProfile,
+  doctorProfileController.deleteDoctorProfile
 );
 
-// Certificate management (admin only)
+// ==================== Certificate Management Routes ====================
+
+// Add certificate
 router.post(
   "/:id/certificates",
   protect,
   authorize("admin"),
-  uploadCertificate.single("certificate"),
+  uploadCertificate.single("file"),
   handleMulterError,
-  doctorProfileController.addCertificate,
+  doctorProfileController.addCertificate
 );
 
+// Remove certificate
 router.delete(
   "/:id/certificates/:certificateId",
   protect,
   authorize("admin"),
-  doctorProfileController.removeCertificate,
+  doctorProfileController.removeCertificate
 );
 
-// Material management (admin only)
+// ==================== Material Management Routes ====================
+
+// Add material
 router.post(
   "/:id/materials",
   protect,
   authorize("admin"),
-  uploadCertificate.single("material"),
+  uploadMaterial.single("file"),
   handleMulterError,
-  doctorProfileController.addMaterial,
+  doctorProfileController.addMaterial
 );
 
+// Remove material
 router.delete(
   "/:id/materials/:materialId",
   protect,
   authorize("admin"),
-  doctorProfileController.removeMaterial,
+  doctorProfileController.removeMaterial
 );
 
-// Previous cases management (admin only)
+// ==================== Previous Cases Management Routes ====================
+
+// Add previous case (with before/after photos)
 router.post(
   "/:id/cases",
   protect,
@@ -94,29 +104,33 @@ router.post(
     { name: "afterPhoto", maxCount: 1 },
   ]),
   handleMulterError,
-  doctorProfileController.addPreviousCase,
+  doctorProfileController.addPreviousCase
 );
 
+// Remove previous case
 router.delete(
   "/:id/cases/:caseId",
   protect,
   authorize("admin"),
-  doctorProfileController.removePreviousCase,
+  doctorProfileController.removePreviousCase
 );
 
-// Office hours management (admin only)
+// ==================== Office Hours Management Routes ====================
+
+// Add office hours
 router.post(
   "/:id/office-hours",
   protect,
   authorize("admin"),
-  doctorProfileController.addOfficeHours,
+  doctorProfileController.addOfficeHours
 );
 
+// Remove office hours
 router.delete(
   "/:id/office-hours/:officeHoursId",
   protect,
   authorize("admin"),
-  doctorProfileController.removeOfficeHours,
+  doctorProfileController.removeOfficeHours
 );
 
 export default router;

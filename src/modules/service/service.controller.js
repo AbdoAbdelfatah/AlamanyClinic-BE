@@ -97,6 +97,129 @@ class ServiceController {
     }
   }
 
+  // @desc    Update service (Admin only)
+  // @route   PUT /api/services/:id
+  // @access  Private/Admin
+  async updateService(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { name, description, category, duration } = req.body;
+
+      // Validate MongoDB ID
+      if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new ErrorClass("Invalid service ID", 400);
+      }
+
+      // Check if service exists
+      const existingService = await Service.findById(id);
+      if (!existingService) {
+        throw new ErrorClass("Service not found", 404);
+      }
+
+      // Build update data object
+      const updateData = {};
+
+      // Only update fields that are provided
+      if (name !== undefined) {
+        // Check for duplicate name (excluding current service)
+        const nameExists = await Service.findOne({
+          _id: { $ne: id },
+          name: { $regex: new RegExp(`^${name}$`, "i") },
+        });
+
+        if (nameExists) {
+          throw new ErrorClass("Service with this name already exists", 400);
+        }
+        updateData.name = name.trim();
+      }
+
+      if (description !== undefined) {
+        updateData.description = description.trim();
+      }
+
+      if (category !== undefined) {
+        // Validate category enum
+        const validCategories = [
+          "General Dentistry",
+          "Orthodontics",
+          "Periodontics",
+          "Endodontics",
+          "Prosthodontics",
+          "Oral Surgery",
+          "Pediatric Dentistry",
+          "Cosmetic Dentistry",
+          "Implantology",
+          "Preventive Care",
+        ];
+
+        if (!validCategories.includes(category)) {
+          throw new ErrorClass(
+            `Invalid category. Must be one of: ${validCategories.join(", ")}`,
+            400
+          );
+        }
+        updateData.category = category;
+      }
+
+      if (duration !== undefined) {
+        updateData.duration = duration;
+      }
+
+      // Handle price update
+      if (req.body.price) {
+        const price = {
+          min: Number(req.body.price.min) ?? existingService.price.min,
+          max: Number(req.body.price.max) ?? existingService.price.max,
+          currency: req.body.price.currency ?? existingService.price.currency,
+        };
+
+        // Validate price range
+        if (price.min < 0 || price.max < 0) {
+          throw new ErrorClass("Price cannot be negative", 400);
+        }
+
+        if (price.max > 0 && price.min > price.max) {
+          throw new ErrorClass(
+            "Minimum price cannot be greater than maximum price",
+            400
+          );
+        }
+
+        updateData.price = price;
+      }
+
+      // Handle cover image upload
+      if (req.file) {
+        // Delete old image if exists (optional - implement if using Cloudinary)
+        updateData.coverImage = req.file.path;
+      }
+
+      // If no fields to update
+      if (Object.keys(updateData).length === 0) {
+        throw new ErrorClass("No fields to update", 400);
+      }
+
+      // Update with validation
+      const updatedService = await Service.findByIdAndUpdate(
+        id,
+        updateData,
+        {
+          new: true, // Return updated document
+          runValidators: true, // Run schema validators
+        }
+      );
+
+      return successResponse(
+        res,
+        200,
+        "Service updated successfully",
+        updatedService
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // @desc    Delete service (Admin only)
   // @route   DELETE /api/services/:id
   // @access  Private/Admin
