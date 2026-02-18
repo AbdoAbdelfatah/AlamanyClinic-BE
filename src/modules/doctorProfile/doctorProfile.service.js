@@ -15,8 +15,8 @@ import {
 
 class DoctorProfileService {
   /**
-   * Create a new doctor profile
-   * @param {Object} profileData - Profile data object
+   * Create a new doctor profile with optional files
+   * @param {Object} profileData - Profile data object (may include certificates, materials, previousCases)
    * @returns {Promise<Object>} Created profile document
    */
   async createDoctorProfile(profileData) {
@@ -67,10 +67,52 @@ class DoctorProfileService {
         );
       }
 
+      // Process certificates - extract proper publicId from URLs if they're Cloudinary URLs
+      if (profileData.certificates && Array.isArray(profileData.certificates)) {
+        profileData.certificates = profileData.certificates.map((cert) => {
+          if (cert.url) {
+            cert.publicId = extractPublicId(cert.url);
+          }
+          return cert;
+        });
+      }
+
+      // Process materials - extract proper publicId from URLs if they're Cloudinary URLs
+      if (profileData.materials && Array.isArray(profileData.materials)) {
+        profileData.materials = profileData.materials.map((material) => {
+          if (material.url) {
+            material.publicId = extractPublicId(material.url);
+          }
+          return material;
+        });
+      }
+
+      // Process previous cases - extract proper publicId from URLs if they're Cloudinary URLs
+      if (
+        profileData.previousCases &&
+        Array.isArray(profileData.previousCases)
+      ) {
+        profileData.previousCases = profileData.previousCases.map(
+          (caseItem) => {
+            if (caseItem.beforePhoto?.url) {
+              caseItem.beforePhoto.publicId = extractPublicId(
+                caseItem.beforePhoto.url,
+              );
+            }
+            if (caseItem.afterPhoto?.url) {
+              caseItem.afterPhoto.publicId = extractPublicId(
+                caseItem.afterPhoto.url,
+              );
+            }
+            return caseItem;
+          },
+        );
+      }
+
       const doctorProfile = new DoctorProfile(profileData);
       await doctorProfile.save();
 
-      console.log(`✅ Doctor profile created: ${doctorProfile._id}`);
+      console.log(`✅ Doctor profile created with files: ${doctorProfile._id}`);
       return doctorProfile;
     } catch (error) {
       if (error instanceof ErrorClass) throw error;

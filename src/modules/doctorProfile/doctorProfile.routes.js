@@ -24,14 +24,20 @@ router.get("/:id/statistics", doctorProfileController.getDoctorStatistics);
 
 // ==================== Protected Routes - Admin Only ====================
 
-// Create new doctor profile
+// Create new doctor profile with all files (picture, certificate, materials, case photos)
 router.post(
   "/",
   protect,
   authorize("admin"),
-  uploadProfilePicture.single("picture"),
+  uploadCasePhotos.fields([
+    { name: "picture", maxCount: 1 },
+    { name: "certificate", maxCount: 5 },
+    { name: "material", maxCount: 5 },
+    { name: "beforePhoto", maxCount: 5 },
+    { name: "afterPhoto", maxCount: 5 },
+  ]),
   handleMulterError,
-  doctorProfileController.createDoctorProfile
+  doctorProfileController.createDoctorProfile,
 );
 
 // Update doctor profile by ID
@@ -41,7 +47,7 @@ router.put(
   authorize("admin"),
   uploadProfilePicture.single("picture"),
   handleMulterError,
-  doctorProfileController.updateDoctorProfile
+  doctorProfileController.updateDoctorProfile,
 );
 
 // Delete doctor profile
@@ -49,7 +55,7 @@ router.delete(
   "/:id",
   protect,
   authorize("admin"),
-  doctorProfileController.deleteDoctorProfile
+  doctorProfileController.deleteDoctorProfile,
 );
 
 // ==================== Certificate Management Routes ====================
@@ -61,7 +67,7 @@ router.post(
   authorize("admin"),
   uploadCertificate.single("file"),
   handleMulterError,
-  doctorProfileController.addCertificate
+  doctorProfileController.addCertificate,
 );
 
 // Remove certificate
@@ -69,7 +75,7 @@ router.delete(
   "/:id/certificates/:certificateId",
   protect,
   authorize("admin"),
-  doctorProfileController.removeCertificate
+  doctorProfileController.removeCertificate,
 );
 
 // ==================== Material Management Routes ====================
@@ -81,7 +87,7 @@ router.post(
   authorize("admin"),
   uploadMaterial.single("file"),
   handleMulterError,
-  doctorProfileController.addMaterial
+  doctorProfileController.addMaterial,
 );
 
 // Remove material
@@ -89,7 +95,7 @@ router.delete(
   "/:id/materials/:materialId",
   protect,
   authorize("admin"),
-  doctorProfileController.removeMaterial
+  doctorProfileController.removeMaterial,
 );
 
 // ==================== Previous Cases Management Routes ====================
@@ -104,7 +110,7 @@ router.post(
     { name: "afterPhoto", maxCount: 1 },
   ]),
   handleMulterError,
-  doctorProfileController.addPreviousCase
+  doctorProfileController.addPreviousCase,
 );
 
 // Remove previous case
@@ -112,7 +118,7 @@ router.delete(
   "/:id/cases/:caseId",
   protect,
   authorize("admin"),
-  doctorProfileController.removePreviousCase
+  doctorProfileController.removePreviousCase,
 );
 
 // ==================== Office Hours Management Routes ====================
@@ -122,7 +128,7 @@ router.post(
   "/:id/office-hours",
   protect,
   authorize("admin"),
-  doctorProfileController.addOfficeHours
+  doctorProfileController.addOfficeHours,
 );
 
 // Remove office hours
@@ -130,7 +136,7 @@ router.delete(
   "/:id/office-hours/:officeHoursId",
   protect,
   authorize("admin"),
-  doctorProfileController.removeOfficeHours
+  doctorProfileController.removeOfficeHours,
 );
 
 export default router;

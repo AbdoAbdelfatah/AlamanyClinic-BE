@@ -34,7 +34,7 @@ class DoctorProfileController {
         "Missing Required Fields",
         400,
         `The following fields are required: ${missingFields.join(", ")}`,
-        "DoctorProfileController#validateRequiredFields"
+        "DoctorProfileController#validateRequiredFields",
       );
     }
   }
@@ -61,8 +61,9 @@ class DoctorProfileController {
   }
 
   /**
-   * Create a new doctor profile
+   * Create a new doctor profile with optional certificate, materials, and case photos
    * POST /api/doctor-profiles
+   * Files: picture, certificate, material, beforePhoto, afterPhoto (all optional)
    */
   createDoctorProfile = asyncHandler(async (req, res) => {
     // Validate required fields
@@ -77,8 +78,84 @@ class DoctorProfileController {
     const profileData = this.#prepareDoctorProfileData(req.body);
 
     // Add profile picture if uploaded
-    if (req.file) {
-      profileData.picture = req.file.path;
+    if (req.files?.picture?.[0]) {
+      profileData.picture = req.files.picture[0].path;
+    }
+
+    // Add certificate if uploaded
+    if (req.files?.certificate?.[0]) {
+      const certData = this.#parseJSON(req.body.certificateData, {});
+      if (!certData.name) {
+        throw new ErrorClass(
+          "Certificate Name Required",
+          400,
+          "Certificate name is required when uploading a certificate file",
+          "DoctorProfileController#createDoctorProfile",
+        );
+      }
+      if (!profileData.certificates) profileData.certificates = [];
+      profileData.certificates.push({
+        name: certData.name,
+        url: req.files.certificate[0].path,
+        publicId: req.files.certificate[0].path,
+        issuedDate: certData.issuedDate,
+        expiryDate: certData.expiryDate,
+      });
+    }
+
+    // Add material if uploaded
+    if (req.files?.material?.[0]) {
+      const materialData = this.#parseJSON(req.body.materialData, {});
+      if (!materialData.category) {
+        throw new ErrorClass(
+          "Material Category Required",
+          400,
+          "Material category is required when uploading a material file",
+          "DoctorProfileController#createDoctorProfile",
+        );
+      }
+      if (!profileData.materials) profileData.materials = [];
+      profileData.materials.push({
+        category: materialData.category,
+        brand: materialData.brand,
+        description: materialData.description,
+        url: req.files.material[0].path,
+        publicId: req.files.material[0].path,
+      });
+    }
+
+    // Add case (before/after photos) if both uploaded
+    if (req.files?.beforePhoto?.[0] && req.files?.afterPhoto?.[0]) {
+      const caseData = this.#parseJSON(req.body.caseData, {});
+      if (!caseData.title || !caseData.treatmentType) {
+        throw new ErrorClass(
+          "Case Data Incomplete",
+          400,
+          "Case title and treatment type are required when uploading case photos",
+          "DoctorProfileController#createDoctorProfile",
+        );
+      }
+      if (!profileData.previousCases) profileData.previousCases = [];
+      profileData.previousCases.push({
+        title: caseData.title,
+        treatmentType: caseData.treatmentType,
+        description: caseData.description,
+        beforePhoto: {
+          url: req.files.beforePhoto[0].path,
+          publicId: req.files.beforePhoto[0].path,
+        },
+        afterPhoto: {
+          url: req.files.afterPhoto[0].path,
+          publicId: req.files.afterPhoto[0].path,
+        },
+      });
+    } else if (req.files?.beforePhoto?.[0] || req.files?.afterPhoto?.[0]) {
+      throw new ErrorClass(
+        "Both Case Photos Required",
+        400,
+        "Both before and after photos are required for case documentation",
+        "DoctorProfileController#createDoctorProfile",
+      );
     }
 
     // Create profile via service
@@ -99,7 +176,9 @@ class DoctorProfileController {
   getAllDoctorProfiles = asyncHandler(async (req, res) => {
     const filters = {
       specialization: req.query.specialization,
-      minExperience: req.query.minExperience ? parseInt(req.query.minExperience) : undefined,
+      minExperience: req.query.minExperience
+        ? parseInt(req.query.minExperience)
+        : undefined,
       materials: req.query.materials,
       search: req.query.search?.trim(),
     };
@@ -109,7 +188,10 @@ class DoctorProfileController {
       limit: req.query.limit ? Math.min(100, parseInt(req.query.limit)) : 10,
     };
 
-    const result = await doctorProfileService.getAllDoctorProfiles(filters, options);
+    const result = await doctorProfileService.getAllDoctorProfiles(
+      filters,
+      options,
+    );
 
     res.status(200).json({
       success: true,
@@ -130,7 +212,7 @@ class DoctorProfileController {
         "Invalid Profile ID",
         400,
         "Profile ID must be a valid MongoDB ID",
-        "DoctorProfileController#getDoctorProfileById"
+        "DoctorProfileController#getDoctorProfileById",
       );
     }
 
@@ -154,7 +236,7 @@ class DoctorProfileController {
         "Invalid Profile ID",
         400,
         "Profile ID must be a valid MongoDB ID",
-        "DoctorProfileController#updateDoctorProfile"
+        "DoctorProfileController#updateDoctorProfile",
       );
     }
 
@@ -164,7 +246,7 @@ class DoctorProfileController {
     const profile = await doctorProfileService.updateDoctorProfile(
       id,
       updateData,
-      file
+      file,
     );
 
     res.status(200).json({
@@ -186,7 +268,7 @@ class DoctorProfileController {
     const profile = await doctorProfileService.updateDoctorProfile(
       userId,
       updateData,
-      file
+      file,
     );
 
     res.status(200).json({
@@ -208,7 +290,7 @@ class DoctorProfileController {
         "Invalid Profile ID",
         400,
         "Profile ID must be a valid MongoDB ID",
-        "DoctorProfileController#deleteDoctorProfile"
+        "DoctorProfileController#deleteDoctorProfile",
       );
     }
 
@@ -232,7 +314,7 @@ class DoctorProfileController {
         "Invalid Profile ID",
         400,
         "Profile ID must be a valid MongoDB ID",
-        "DoctorProfileController#addCertificate"
+        "DoctorProfileController#addCertificate",
       );
     }
 
@@ -245,7 +327,10 @@ class DoctorProfileController {
       fileUrl: req.file?.path,
     };
 
-    const profile = await doctorProfileService.addCertificate(id, certificateData);
+    const profile = await doctorProfileService.addCertificate(
+      id,
+      certificateData,
+    );
 
     res.status(201).json({
       success: true,
@@ -261,16 +346,24 @@ class DoctorProfileController {
   removeCertificate = asyncHandler(async (req, res) => {
     const { id, certificateId } = req.params;
 
-    if (!id || id.length !== 24 || !certificateId || certificateId.length !== 24) {
+    if (
+      !id ||
+      id.length !== 24 ||
+      !certificateId ||
+      certificateId.length !== 24
+    ) {
       throw new ErrorClass(
         "Invalid IDs",
         400,
         "Both profile ID and certificate ID must be valid MongoDB IDs",
-        "DoctorProfileController#removeCertificate"
+        "DoctorProfileController#removeCertificate",
       );
     }
 
-    const profile = await doctorProfileService.removeCertificate(id, certificateId);
+    const profile = await doctorProfileService.removeCertificate(
+      id,
+      certificateId,
+    );
 
     res.status(200).json({
       success: true,
@@ -291,7 +384,7 @@ class DoctorProfileController {
         "Invalid Profile ID",
         400,
         "Profile ID must be a valid MongoDB ID",
-        "DoctorProfileController#addMaterial"
+        "DoctorProfileController#addMaterial",
       );
     }
 
@@ -325,7 +418,7 @@ class DoctorProfileController {
         "Invalid IDs",
         400,
         "Both profile ID and material ID must be valid MongoDB IDs",
-        "DoctorProfileController#removeMaterial"
+        "DoctorProfileController#removeMaterial",
       );
     }
 
@@ -351,7 +444,7 @@ class DoctorProfileController {
         "Invalid Profile ID",
         400,
         "Profile ID must be a valid MongoDB ID",
-        "DoctorProfileController#addPreviousCase"
+        "DoctorProfileController#addPreviousCase",
       );
     }
 
@@ -369,7 +462,7 @@ class DoctorProfileController {
     const profile = await doctorProfileService.addPreviousCase(
       id,
       caseData,
-      files
+      files,
     );
 
     res.status(201).json({
@@ -391,7 +484,7 @@ class DoctorProfileController {
         "Invalid IDs",
         400,
         "Both profile ID and case ID must be valid MongoDB IDs",
-        "DoctorProfileController#removePreviousCase"
+        "DoctorProfileController#removePreviousCase",
       );
     }
 
@@ -416,7 +509,7 @@ class DoctorProfileController {
         "Invalid Profile ID",
         400,
         "Profile ID must be a valid MongoDB ID",
-        "DoctorProfileController#getDoctorStatistics"
+        "DoctorProfileController#getDoctorStatistics",
       );
     }
 
@@ -440,7 +533,7 @@ class DoctorProfileController {
         "Invalid Profile ID",
         400,
         "Profile ID must be a valid MongoDB ID",
-        "DoctorProfileController#addOfficeHours"
+        "DoctorProfileController#addOfficeHours",
       );
     }
 
@@ -454,7 +547,7 @@ class DoctorProfileController {
 
     const profile = await doctorProfileService.addOfficeHours(
       id,
-      officeHoursData
+      officeHoursData,
     );
 
     res.status(201).json({
@@ -471,18 +564,23 @@ class DoctorProfileController {
   removeOfficeHours = asyncHandler(async (req, res) => {
     const { id, officeHoursId } = req.params;
 
-    if (!id || id.length !== 24 || !officeHoursId || officeHoursId.length !== 24) {
+    if (
+      !id ||
+      id.length !== 24 ||
+      !officeHoursId ||
+      officeHoursId.length !== 24
+    ) {
       throw new ErrorClass(
         "Invalid IDs",
         400,
         "Both profile ID and office hours ID must be valid MongoDB IDs",
-        "DoctorProfileController#removeOfficeHours"
+        "DoctorProfileController#removeOfficeHours",
       );
     }
 
     const profile = await doctorProfileService.removeOfficeHours(
       id,
-      officeHoursId
+      officeHoursId,
     );
 
     res.status(200).json({
