@@ -6,18 +6,16 @@ import mongoose from "mongoose";
 
 const allowedOrigins = [
   "https://alamany-dental-clinic.vercel.app",
+  "https://alamanyclinic.vercel.app",
   "http://localhost:4200",
   "http://localhost:3000",
 ];
 
-const handler = async (req, res) => {
+export default async (req, res) => {
   try {
     const origin = req.headers.origin;
 
-    // Set CORS headers
-    if (allowedOrigins.includes(origin)) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-    }
+    // Set CORS headers immediately
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader(
       "Access-Control-Allow-Methods",
@@ -25,12 +23,20 @@ const handler = async (req, res) => {
     );
     res.setHeader(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization",
+      "Content-Type, Authorization, Accept",
     );
+
+    // Always set origin header
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    } else {
+      res.setHeader("Access-Control-Allow-Origin", allowedOrigins[0]);
+    }
 
     // Handle preflight requests
     if (req.method === "OPTIONS") {
-      return res.status(200).end();
+      res.status(200).end();
+      return;
     }
 
     // Connect to DB if not already connected
@@ -39,18 +45,21 @@ const handler = async (req, res) => {
     }
 
     // Let Express handle the request
-    return app(req, res);
+    app(req, res);
   } catch (error) {
     console.error("Handler error:", error);
     const origin = req.headers.origin;
+
+    res.setHeader("Access-Control-Allow-Credentials", "true");
     if (allowedOrigins.includes(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
+    } else {
+      res.setHeader("Access-Control-Allow-Origin", allowedOrigins[0]);
     }
-    return res.status(500).json({
+
+    res.status(500).json({
       success: false,
       message: "Internal server error",
     });
   }
 };
-
-export default handler;
