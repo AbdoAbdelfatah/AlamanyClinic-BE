@@ -4,8 +4,35 @@ import app from "../src/app.js";
 import { connectDB } from "../src/config/db.config.js";
 import mongoose from "mongoose";
 
+const allowedOrigins = [
+  "https://alamany-dental-clinic.vercel.app",
+  "http://localhost:4200",
+  "http://localhost:3000",
+];
+
 const handler = async (req, res) => {
   try {
+    const origin = req.headers.origin;
+
+    // Set CORS headers
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    }
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization",
+    );
+
+    // Handle preflight requests
+    if (req.method === "OPTIONS") {
+      return res.status(200).end();
+    }
+
     // Connect to DB if not already connected
     if (mongoose.connection.readyState === 0) {
       await connectDB();
@@ -15,6 +42,10 @@ const handler = async (req, res) => {
     return app(req, res);
   } catch (error) {
     console.error("Handler error:", error);
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    }
     return res.status(500).json({
       success: false,
       message: "Internal server error",
