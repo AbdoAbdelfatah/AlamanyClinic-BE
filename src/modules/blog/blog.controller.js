@@ -61,8 +61,16 @@ class BlogController {
 
       const total = await Blog.countDocuments(query);
 
+      // Ensure all blogs have required fields
+      const sanitizedBlogs = blogs.map(blog => ({
+        ...blog.toObject(),
+        coverImage: blog.coverImage || null,
+        images: blog.images || [],
+        videos: blog.videos || [],
+      }));
+
       return successResponse(res, 200, "Blogs retrieved successfully", {
-        blogs,
+        blogs: sanitizedBlogs,
         pagination: {
           currentPage: Number(page),
           totalPages: Math.ceil(total / Number(limit)),
