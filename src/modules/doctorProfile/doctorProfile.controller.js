@@ -96,7 +96,7 @@ class DoctorProfileController {
       if (!profileData.certificates) profileData.certificates = [];
       profileData.certificates.push({
         name: certData.name,
-        url: req.files.certificate[0].path,
+        fileUrl: req.files.certificate[0].path,
         publicId: req.files.certificate[0].path,
         issuedDate: certData.issuedDate,
         expiryDate: certData.expiryDate,
@@ -119,7 +119,7 @@ class DoctorProfileController {
         category: materialData.category,
         brand: materialData.brand,
         description: materialData.description,
-        url: req.files.material[0].path,
+        fileUrl: req.files.material[0].path,
         publicId: req.files.material[0].path,
       });
     }
