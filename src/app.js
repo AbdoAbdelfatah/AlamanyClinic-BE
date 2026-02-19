@@ -14,7 +14,12 @@ import { globalErrorHandler } from "./middlewares/globalError.middleware.js";
 const app = express();
 
 const corsOptions = {
-  origin: ["https://alamany-dental-clinic.vercel.app", "http://localhost:4200"],
+  origin: [
+    "https://alamany-dental-clinic.vercel.app",
+    "https://alamanyclinic.vercel.app",
+    "http://localhost:4200",
+    "http://localhost:3000",
+  ],
   credentials: true,
   optionsSuccessStatus: 200,
 };
