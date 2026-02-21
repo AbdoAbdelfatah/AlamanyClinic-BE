@@ -172,11 +172,6 @@ class DoctorProfileService {
 
       const [doctors, total] = await Promise.all([
         DoctorProfile.find(query)
-          .populate({
-            path: "reviews",
-            select: "rating comment",
-            limit: 5,
-          })
           .skip(skip)
           .limit(limitNum)
           .sort({ createdAt: -1 })
@@ -212,10 +207,7 @@ class DoctorProfileService {
    */
   async getDoctorProfileById(profileId) {
     try {
-      const profile = await DoctorProfile.findById(profileId).populate({
-        path: "reviews",
-        populate: { path: "patient", select: "name email" },
-      });
+      const profile = await DoctorProfile.findById(profileId);
 
       if (!profile) {
         throw new ErrorClass(
@@ -701,7 +693,7 @@ class DoctorProfileService {
   async getDoctorStatistics(profileId) {
     try {
       const profile =
-        await DoctorProfile.findById(profileId).populate("reviews");
+        await DoctorProfile.findById(profileId);
 
       if (!profile) {
         throw new ErrorClass(
@@ -712,23 +704,10 @@ class DoctorProfileService {
         );
       }
 
-      const totalReviews = profile.reviews?.length || 0;
-      const averageRating =
-        totalReviews > 0
-          ? (
-              profile.reviews.reduce(
-                (sum, review) => sum + (review.rating || 0),
-                0,
-              ) / totalReviews
-            ).toFixed(1)
-          : 0;
-
       return {
         totalCases: profile.previousCases?.length || 0,
         totalCertificates: profile.certificates?.length || 0,
         totalMaterials: profile.materials?.length || 0,
-        totalReviews,
-        averageRating: parseFloat(averageRating),
         yearsOfExperience: profile.yearsOfExperience,
         specializations: profile.specialization,
       };
