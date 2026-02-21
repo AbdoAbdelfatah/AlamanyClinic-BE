@@ -65,6 +65,130 @@ class DoctorProfileController {
    * POST /api/doctor-profiles
    * Files: picture, certificate, material, beforePhoto, afterPhoto (all optional)
    */
+  // createDoctorProfile = asyncHandler(async (req, res) => {
+  //   // Validate required fields
+  //   this.#validateRequiredFields(req.body, [
+  //     "email",
+  //     "firstName",
+  //     "lastName",
+  //     "licenseNumber",
+  //   ]);
+
+  //   // Prepare profile data
+  //   const profileData = this.#prepareDoctorProfileData(req.body);
+
+  //   // Add profile picture if uploaded
+  //   if (req.files?.picture?.[0]) {
+  //     profileData.picture = req.files.picture[0].path;
+  //   }
+
+  //   // Add multiple certificates if uploaded
+  //   if (req.files?.certificates && Array.isArray(req.files.certificates)) {
+  //     if (!profileData.certificates) profileData.certificates = [];
+  //     req.files.certificates.forEach((file, index) => {
+  //       const certData = this.#parseJSON(
+  //         req.body[`certificateData[${index}]`],
+  //         {},
+  //       );
+  //       if (!certData.name) {
+  //         throw new ErrorClass(
+  //           "Certificate Name Required",
+  //           400,
+  //           `Certificate ${index + 1} name is required`,
+  //           "DoctorProfileController#createDoctorProfile",
+  //         );
+  //       }
+  //       profileData.certificates.push({
+  //         name: certData.name,
+  //         fileUrl: file.path,
+  //         publicId: file.path,
+  //         issueDate: certData.issueDate,
+  //         expiryDate: certData.expiryDate,
+  //       });
+  //     });
+  //   }
+
+  //   // Add multiple materials if uploaded
+  //   if (req.files?.materials && Array.isArray(req.files.materials)) {
+  //     if (!profileData.materials) profileData.materials = [];
+  //     req.files.materials.forEach((file, index) => {
+  //       const materialData = this.#parseJSON(
+  //         req.body[`materialData[${index}]`],
+  //         {},
+  //       );
+  //       if (!materialData.category) {
+  //         throw new ErrorClass(
+  //           "Material Category Required",
+  //           400,
+  //           `Material ${index + 1} category is required`,
+  //           "DoctorProfileController#createDoctorProfile",
+  //         );
+  //       }
+  //       profileData.materials.push({
+  //         category: materialData.category,
+  //         brand: materialData.brand,
+  //         description: materialData.description,
+  //         fileUrl: file.path,
+  //         publicId: file.path,
+  //       });
+  //     });
+  //   }
+
+  //   // Add multiple cases (before/after photo pairs) if uploaded
+  //   if (req.files?.beforePhoto || req.files?.afterPhoto) {
+  //     const beforePhotos = req.files?.beforePhoto || [];
+  //     const afterPhotos = req.files?.afterPhoto || [];
+
+  //     // Ensure we have matching pairs
+  //     const pairsCount = Math.min(beforePhotos.length, afterPhotos.length);
+
+  //     if (pairsCount > 0) {
+  //       if (!profileData.previousCases) profileData.previousCases = [];
+
+  //       for (let i = 0; i < pairsCount; i++) {
+  //         const caseData = this.#parseJSON(req.body[`caseData[${i}]`], {});
+  //         if (!caseData.title || !caseData.treatmentType) {
+  //           throw new ErrorClass(
+  //             "Case Data Incomplete",
+  //             400,
+  //             `Case ${i + 1} requires title and treatment type`,
+  //             "DoctorProfileController#createDoctorProfile",
+  //           );
+  //         }
+  //         profileData.previousCases.push({
+  //           title: caseData.title,
+  //           treatmentType: caseData.treatmentType,
+  //           description: caseData.description,
+  //           beforePhoto: {
+  //             url: beforePhotos[i].path,
+  //             publicId: beforePhotos[i].path,
+  //           },
+  //           afterPhoto: {
+  //             url: afterPhotos[i].path,
+  //             publicId: afterPhotos[i].path,
+  //           },
+  //         });
+  //       }
+  //     } else if (beforePhotos.length !== afterPhotos.length) {
+  //       throw new ErrorClass(
+  //         "Mismatched Case Photos",
+  //         400,
+  //         "Each case requires both before and after photos (must be equal count)",
+  //         "DoctorProfileController#createDoctorProfile",
+  //       );
+  //     }
+  //   }
+
+  //   // Create profile via service
+  //   const profile = await doctorProfileService.createDoctorProfile(profileData);
+
+  //   res.status(201).json({
+  //     success: true,
+  //     message: "Doctor profile created successfully",
+  //     data: profile,
+  //   });
+  // });
+
   createDoctorProfile = asyncHandler(async (req, res) => {
     // Validate required fields
     this.#validateRequiredFields(req.body, [
@@ -83,13 +207,20 @@ class DoctorProfileController {
     }
 
     // Add multiple certificates if uploaded
-    if (req.files?.certificates && Array.isArray(req.files.certificates)) {
-      if (!profileData.certificates) profileData.certificates = [];
+    if (req.files?.certificates?.length) {
+      profileData.certificates = [];
+
+      // Normalize: multipart sends repeated fields as string (1 item) or array (2+ items)
+      const rawCertData = req.body.certificateData;
+      const certDataList = Array.isArray(rawCertData)
+        ? rawCertData
+        : rawCertData
+          ? [rawCertData]
+          : [];
+
       req.files.certificates.forEach((file, index) => {
-        const certData = this.#parseJSON(
-          req.body[`certificateData[${index}]`],
-          {},
-        );
+        const certData = this.#parseJSON(certDataList[index], {});
+
         if (!certData.name) {
           throw new ErrorClass(
             "Certificate Name Required",
@@ -98,24 +229,32 @@ class DoctorProfileController {
             "DoctorProfileController#createDoctorProfile",
           );
         }
+
         profileData.certificates.push({
           name: certData.name,
           fileUrl: file.path,
           publicId: file.path,
-          issueDate: certData.issueDate,
-          expiryDate: certData.expiryDate,
+          issueDate: certData.issuedDate ?? certData.issueDate ?? null, // handle both key variants
+          expiryDate: certData.expiryDate ?? null,
         });
       });
     }
 
     // Add multiple materials if uploaded
-    if (req.files?.materials && Array.isArray(req.files.materials)) {
-      if (!profileData.materials) profileData.materials = [];
+    if (req.files?.materials?.length) {
+      profileData.materials = [];
+
+      // Normalize same as certificateData
+      const rawMaterialData = req.body.materialData;
+      const materialDataList = Array.isArray(rawMaterialData)
+        ? rawMaterialData
+        : rawMaterialData
+          ? [rawMaterialData]
+          : [];
+
       req.files.materials.forEach((file, index) => {
-        const materialData = this.#parseJSON(
-          req.body[`materialData[${index}]`],
-          {},
-        );
+        const materialData = this.#parseJSON(materialDataList[index], {});
+
         if (!materialData.category) {
           throw new ErrorClass(
             "Material Category Required",
@@ -124,52 +263,23 @@ class DoctorProfileController {
             "DoctorProfileController#createDoctorProfile",
           );
         }
+
         profileData.materials.push({
           category: materialData.category,
-          brand: materialData.brand,
-          description: materialData.description,
+          brand: materialData.brand ?? null,
+          description: materialData.description ?? null,
           fileUrl: file.path,
           publicId: file.path,
         });
       });
     }
 
-    // Add multiple cases (before/after photo pairs) if uploaded
-    if (req.files?.beforePhoto || req.files?.afterPhoto) {
-      const beforePhotos = req.files?.beforePhoto || [];
-      const afterPhotos = req.files?.afterPhoto || [];
+    // Add previous cases (before/after photo pairs) if uploaded
+    if (req.files?.beforePhoto?.length || req.files?.afterPhoto?.length) {
+      const beforePhotos = req.files?.beforePhoto ?? [];
+      const afterPhotos = req.files?.afterPhoto ?? [];
 
-      // Ensure we have matching pairs
-      const pairsCount = Math.min(beforePhotos.length, afterPhotos.length);
-
-      if (pairsCount > 0) {
-        if (!profileData.previousCases) profileData.previousCases = [];
-
-        for (let i = 0; i < pairsCount; i++) {
-          const caseData = this.#parseJSON(req.body[`caseData[${i}]`], {});
-          if (!caseData.title || !caseData.treatmentType) {
-            throw new ErrorClass(
-              "Case Data Incomplete",
-              400,
-              `Case ${i + 1} requires title and treatment type`,
-              "DoctorProfileController#createDoctorProfile",
-            );
-          }
-          profileData.previousCases.push({
-            title: caseData.title,
-            treatmentType: caseData.treatmentType,
-            description: caseData.description,
-            beforePhoto: {
-              url: beforePhotos[i].path,
-              publicId: beforePhotos[i].path,
-            },
-            afterPhoto: {
-              url: afterPhotos[i].path,
-              publicId: afterPhotos[i].path,
-            },
-          });
-        }
-      } else if (beforePhotos.length !== afterPhotos.length) {
+      if (beforePhotos.length !== afterPhotos.length) {
         throw new ErrorClass(
           "Mismatched Case Photos",
           400,
@@ -177,9 +287,44 @@ class DoctorProfileController {
           "DoctorProfileController#createDoctorProfile",
         );
       }
+
+      profileData.previousCases = [];
+
+      const rawCaseData = req.body.caseData;
+      const caseDataList = Array.isArray(rawCaseData)
+        ? rawCaseData
+        : rawCaseData
+          ? [rawCaseData]
+          : [];
+
+      for (let i = 0; i < beforePhotos.length; i++) {
+        const caseData = this.#parseJSON(caseDataList[i], {});
+
+        if (!caseData.title || !caseData.treatmentType) {
+          throw new ErrorClass(
+            "Case Data Incomplete",
+            400,
+            `Case ${i + 1} requires title and treatment type`,
+            "DoctorProfileController#createDoctorProfile",
+          );
+        }
+
+        profileData.previousCases.push({
+          title: caseData.title,
+          treatmentType: caseData.treatmentType,
+          description: caseData.description ?? null,
+          beforePhoto: {
+            url: beforePhotos[i].path,
+            publicId: beforePhotos[i].path,
+          },
+          afterPhoto: {
+            url: afterPhotos[i].path,
+            publicId: afterPhotos[i].path,
+          },
+        });
+      }
     }
 
-    // Create profile via service
     const profile = await doctorProfileService.createDoctorProfile(profileData);
 
     res.status(201).json({
