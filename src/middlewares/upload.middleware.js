@@ -177,7 +177,7 @@ const handleMulterError = (err, req, res, next) => {
       },
       LIMIT_UNEXPECTED_FILE: {
         status: 400,
-        message: "Unexpected file field in request",
+        message: `Unexpected field: "${err.field}"`,
       },
       LIMIT_FIELD_KEY: {
         status: 400,
