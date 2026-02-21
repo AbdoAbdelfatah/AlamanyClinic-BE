@@ -24,17 +24,17 @@ router.get("/:id/statistics", doctorProfileController.getDoctorStatistics);
 
 // ==================== Protected Routes - Admin Only ====================
 
-// Create new doctor profile with all files (picture, certificate, materials, case photos)
+// Create new doctor profile with all files (picture, multiple certificates, materials, case photos)
 router.post(
   "/",
   protect,
   authorize("admin"),
   uploadCasePhotos.fields([
     { name: "picture", maxCount: 1 },
-    { name: "certificate", maxCount: 1 },
-    { name: "material", maxCount: 1 },
-    { name: "beforePhoto", maxCount: 1 },
-    { name: "afterPhoto", maxCount: 1 },
+    { name: "certificates", maxCount: 10 },
+    { name: "materials", maxCount: 10 },
+    { name: "beforePhoto", maxCount: 10 },
+    { name: "afterPhoto", maxCount: 10 },
   ]),
   handleMulterError,
   doctorProfileController.createDoctorProfile,
@@ -60,12 +60,12 @@ router.delete(
 
 // ==================== Certificate Management Routes ====================
 
-// Add certificate
+// Add certificate (can add multiple)
 router.post(
   "/:id/certificates",
   protect,
   authorize("admin"),
-  uploadCertificate.single("file"),
+  uploadCertificate.array("certificates", 10),
   handleMulterError,
   doctorProfileController.addCertificate,
 );
@@ -80,12 +80,12 @@ router.delete(
 
 // ==================== Material Management Routes ====================
 
-// Add material
+// Add material (can add multiple)
 router.post(
   "/:id/materials",
   protect,
   authorize("admin"),
-  uploadMaterial.single("file"),
+  uploadMaterial.array("materials", 10),
   handleMulterError,
   doctorProfileController.addMaterial,
 );
@@ -100,14 +100,14 @@ router.delete(
 
 // ==================== Previous Cases Management Routes ====================
 
-// Add previous case (with before/after photos)
+// Add previous case (with before/after photos - can add multiple)
 router.post(
   "/:id/cases",
   protect,
   authorize("admin"),
   uploadCasePhotos.fields([
-    { name: "beforePhoto", maxCount: 1 },
-    { name: "afterPhoto", maxCount: 1 },
+    { name: "beforePhoto", maxCount: 10 },
+    { name: "afterPhoto", maxCount: 10 },
   ]),
   handleMulterError,
   doctorProfileController.addPreviousCase,
