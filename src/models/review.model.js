@@ -7,6 +7,11 @@ const reviewSchema = new mongoose.Schema(
       ref: "DoctorProfile",
       required: true,
     },
+    name: {
+      type: String,
+      required: [true, "Reviewer name is required"],
+      trim: true,
+    },
     rating: {
       type: Number,
       required: [true, "Rating is required"],

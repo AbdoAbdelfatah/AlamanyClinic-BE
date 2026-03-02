@@ -6,11 +6,11 @@ class ReviewService {
   // Create a new review (anyone can review)
   async createReview(reviewData) {
     try {
-      const { doctorId, rating, comment } = reviewData;
+      const { doctorId, name, rating, comment } = reviewData;
 
       // Validate required fields first
-      if (!doctorId || !rating || !comment) {
-        throw new Error("Doctor ID, rating and comment are required");
+      if (!doctorId || !name || !rating || !comment) {
+        throw new Error("Doctor ID, name, rating and comment are required");
       }
 
       // Validate rating range
@@ -36,6 +36,7 @@ class ReviewService {
       // Create new review
       const review = new Review({
         doctorProfile: doctorId,
+        name: name.trim(),
         rating,
         comment: comment.trim(),
       });
