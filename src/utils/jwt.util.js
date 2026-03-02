@@ -25,14 +25,14 @@ export const verifyAccessToken = (token) => {
         "Access token expired",
         401,
         null,
-        "verifyAccessToken"
+        "verifyAccessToken",
       );
     }
     throw new ErrorClass(
       "Invalid access token",
       401,
       null,
-      "verifyAccessToken"
+      "verifyAccessToken",
     );
   }
 };
@@ -47,14 +47,14 @@ export const verifyRefreshToken = (token) => {
         "Refresh token expired",
         401,
         null,
-        "verifyRefreshToken"
+        "verifyRefreshToken",
       );
     }
     throw new ErrorClass(
       "Invalid refresh token",
       401,
       null,
-      "verifyRefreshToken"
+      "verifyRefreshToken",
     );
   }
 };

@@ -142,14 +142,13 @@ doctorProfileSchema.index({ licenseNumber: 1 });
 doctorProfileSchema.index({ specialization: 1 });
 doctorProfileSchema.index({ yearsOfExperience: 1 });
 
-// Virtual for getting total number of cases
+// ✅ Safe with optional chaining
 doctorProfileSchema.virtual("totalCases").get(function () {
-  return this.previousCases.length;
+  return this.previousCases?.length ?? 0;
 });
 
-// Virtual for getting total certificates
 doctorProfileSchema.virtual("totalCertificates").get(function () {
-  return this.certificates.length;
+  return this.certificates?.length ?? 0;
 });
 
 // Ensure virtuals are included in JSON output

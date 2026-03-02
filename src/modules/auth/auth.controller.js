@@ -45,20 +45,42 @@ export const login = async (req, res) => {
 };
 
 // Refresh access token
-export const refreshAccessToken = async (req, res) => {
+export const refreshAccessToken = async (req, res, next) => {
   const oldRefreshToken = req.cookies.refreshToken;
-  const { accessToken, refreshToken } = await refreshUserToken(oldRefreshToken);
 
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
+  if (!oldRefreshToken) {
+    return next(new ErrorClass("No refresh token", 401));
+  }
 
-  successResponse(res, 200, "Token refreshed successfully", {
-    accessToken,
-  });
+  try {
+    const { accessToken, refreshToken } =
+      await refreshUserToken(oldRefreshToken);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    successResponse(res, 200, "Token refreshed successfully", { accessToken });
+  } catch (error) {
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      // ✅ Clear the dead cookie before passing to error middleware
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      return next(new ErrorClass("Session expired, please login again", 401));
+    }
+
+    // DB/network error — don't touch the cookie
+    return next(new ErrorClass("Token refresh failed", 500));
+  }
 };
 
 // Logout

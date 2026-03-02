@@ -50,8 +50,11 @@ class ReviewController {
 
       return res.status(200).json({
         success: true,
-        data: result.reviews,
-        pagination: result.pagination,
+        data: {
+          reviews: result.reviews,
+          ratingData: result.ratingData,
+          pagination: result.pagination,
+        },
       });
     } catch (error) {
       // Handle specific error types with appropriate status codes

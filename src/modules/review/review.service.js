@@ -9,7 +9,7 @@ class ReviewService {
       const { doctorId, rating, comment } = reviewData;
 
       // Validate required fields first
-      if (!doctorId || !rating || !comment ) {
+      if (!doctorId || !rating || !comment) {
         throw new Error("Doctor ID, rating and comment are required");
       }
 
@@ -70,21 +70,37 @@ class ReviewService {
     }
 
     // Run count and find queries in parallel for better performance
-    const [total, reviews] = await Promise.all([
+    const [total, reviews, ratingData] = await Promise.all([
       Review.countDocuments({ doctorProfile: doctorId }),
       Review.find({ doctorProfile: doctorId })
-        .populate(
-          "doctorProfile",
-          "yearsOfExperience picture licenseNumber"
-        )
+        .populate("doctorProfile", "yearsOfExperience picture licenseNumber")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(), // Returns plain JS objects for better performance
+      Review.aggregate([
+        { $match: { doctorProfile: new mongoose.Types.ObjectId(doctorId) } },
+        {
+          $group: {
+            _id: null,
+            averageRating: { $avg: "$rating" },
+            totalRatings: { $sum: 1 }, // total reviews that have a rating
+            ratingDistribution: {
+              // optional: breakdown per star
+              $push: "$rating",
+            },
+          },
+        },
+      ]),
     ]);
 
     return {
       reviews,
+      ratingData: ratingData[0] || {
+        averageRating: 0,
+        totalRatings: 0,
+        ratingDistribution: [],
+      },
       pagination: {
         total,
         page,
