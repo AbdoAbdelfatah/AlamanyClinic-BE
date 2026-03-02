@@ -6,6 +6,7 @@ import {
   deleteMultipleFromCloudinary,
   extractPublicId,
 } from "../../config/cloudinary.config.js";
+import mongoose from "mongoose";
 
 /**
  * Doctor Profile Service
@@ -217,8 +218,35 @@ class DoctorProfileService {
           "DoctorProfileService#getDoctorProfileById",
         );
       }
+      const ratingStats = await Review.aggregate([
+        {
+          $match: {
+            doctorProfile: new mongoose.Types.ObjectId(profileId),
+          },
+        },
+        {
+          $group: {
+            _id: "$doctorProfile",
+            averageRating: { $avg: "$rating" },
+            totalReviews: { $sum: 1 },
+          },
+        },
+      ]);
 
-      return profile;
+      const overallRating = ratingStats.length
+        ? {
+            averageRating: Number(ratingStats[0].averageRating.toFixed(1)),
+            totalReviews: ratingStats[0].totalReviews,
+          }
+        : {
+            averageRating: 0,
+            totalReviews: 0,
+          };
+
+      return {
+        profile,
+        overallRating,
+      };
     } catch (error) {
       if (error instanceof ErrorClass) throw error;
       throw new ErrorClass(
@@ -692,8 +720,7 @@ class DoctorProfileService {
    */
   async getDoctorStatistics(profileId) {
     try {
-      const profile =
-        await DoctorProfile.findById(profileId);
+      const profile = await DoctorProfile.findById(profileId);
 
       if (!profile) {
         throw new ErrorClass(

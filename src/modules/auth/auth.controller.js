@@ -6,6 +6,7 @@ import {
   getUser,
 } from "./auth.service.js";
 import { successResponse } from "../../utils/response.util.js";
+import { ErrorClass } from "../../utils/errorClass.util.js";
 
 // Register with email/password
 export const register = async (req, res) => {
