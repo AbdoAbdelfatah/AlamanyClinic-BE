@@ -62,7 +62,7 @@ class BlogController {
       const total = await Blog.countDocuments(query);
 
       // Ensure all blogs have required fields
-      const sanitizedBlogs = blogs.map(blog => ({
+      const sanitizedBlogs = blogs.map((blog) => ({
         ...blog.toObject(),
         coverImage: blog.coverImage || null,
         images: blog.images || [],
@@ -162,6 +162,16 @@ class BlogController {
       }
 
       return successResponse(res, 200, "Blog deleted successfully", null);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAllTags(req, res, next) {
+    try {
+      const tags = await Blog.distinct("tags");
+
+      return successResponse(res, 200, "Tags retrieved successfully", { tags });
     } catch (error) {
       next(error);
     }

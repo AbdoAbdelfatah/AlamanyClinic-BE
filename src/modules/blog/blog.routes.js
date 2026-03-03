@@ -8,7 +8,7 @@ import {
 } from "../../middlewares/upload.middleware.js";
 
 const router = express.Router();
-
+router.get("/tags", blogController.getAllTags);
 // Public routes
 router.get("/", blogController.getAllBlogs);
 router.get("/:id", blogController.getBlogById);
@@ -23,7 +23,7 @@ router.post(
       { name: "coverImage", maxCount: 1 },
       { name: "images", maxCount: 10 },
       { name: "videos", maxCount: 5 },
-    ])
+    ]),
   ),
   blogController.createBlog,
 );
@@ -37,17 +37,12 @@ router.put(
       { name: "coverImage", maxCount: 1 },
       { name: "images", maxCount: 10 },
       { name: "videos", maxCount: 5 },
-    ])
+    ]),
   ),
   blogController.updateBlog,
 );
 
 // Protected routes (Admin only for delete)
-router.delete(
-  "/:id",
-  protect,
-  authorize("admin"),
-  blogController.deleteBlog,
-);
+router.delete("/:id", protect, authorize("admin"), blogController.deleteBlog);
 
 export default router;

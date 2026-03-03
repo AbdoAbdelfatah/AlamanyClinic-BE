@@ -1,5 +1,6 @@
 import Appointment from "../../models/appointment.model.js";
 import DoctorProfile from "../../models/doctorProfile.model.js";
+import Review from "../../models/review.model.js";
 import mongoose from "mongoose";
 
 class AppointmentService {
@@ -11,7 +12,26 @@ class AppointmentService {
         "firstName lastName email specialization picture",
       ).sort({ firstName: 1 });
 
-      // Map to include full name
+      // Get rating stats for all doctors in one query
+      const ratingStats = await Review.aggregate([
+        {
+          $group: {
+            _id: "$doctorProfile",
+            averageRating: { $avg: "$rating" },
+            totalReviews: { $sum: 1 },
+          },
+        },
+      ]);
+
+      // Map rating stats by doctorProfile id for quick lookup
+      const ratingMap = ratingStats.reduce((acc, stat) => {
+        acc[stat._id.toString()] = {
+          averageRating: Number(stat.averageRating.toFixed(1)),
+          totalReviews: stat.totalReviews,
+        };
+        return acc;
+      }, {});
+
       const doctorsWithFullName = doctors.map((doctor) => ({
         _id: doctor._id,
         firstName: doctor.firstName,
@@ -20,6 +40,10 @@ class AppointmentService {
         email: doctor.email,
         specialization: doctor.specialization,
         picture: doctor.picture,
+        overallRating: ratingMap[doctor._id.toString()] || {
+          averageRating: 0,
+          totalReviews: 0,
+        },
       }));
 
       return doctorsWithFullName;
