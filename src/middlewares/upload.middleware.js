@@ -171,22 +171,13 @@ const handleMulterError = (err, req, res, next) => {
         status: 413,
         message: "File size exceeds the maximum limit",
       },
-      LIMIT_FILE_COUNT: {
-        status: 400,
-        message: "Too many files uploaded",
-      },
+      LIMIT_FILE_COUNT: { status: 400, message: "Too many files uploaded" },
       LIMIT_UNEXPECTED_FILE: {
         status: 400,
         message: `Unexpected field: "${err.field}"`,
       },
-      LIMIT_FIELD_KEY: {
-        status: 400,
-        message: "Field name is too long",
-      },
-      LIMIT_FIELD_VALUE: {
-        status: 400,
-        message: "Field value is too long",
-      },
+      LIMIT_FIELD_KEY: { status: 400, message: "Field name is too long" },
+      LIMIT_FIELD_VALUE: { status: 400, message: "Field value is too long" },
     };
 
     const error = errors[err.code] || {
@@ -201,7 +192,7 @@ const handleMulterError = (err, req, res, next) => {
     });
   }
 
-  // Custom file filter errors
+  // Custom file filter errors (from imageFileFilter etc.)
   if (err?.message?.includes("Invalid")) {
     return res.status(400).json({
       success: false,
@@ -209,17 +200,8 @@ const handleMulterError = (err, req, res, next) => {
     });
   }
 
-  // Other errors
-  if (err) {
-    console.error("❌ Upload middleware error:", err);
-    return res.status(500).json({
-      success: false,
-      message: err.message || "File upload failed",
-      ...(process.env.NODE_ENV === "development" && { error: err.toString() }),
-    });
-  }
-
-  next();
+  // ✅ Not a multer error — pass to your real global error handler
+  next(err);
 };
 
 /**

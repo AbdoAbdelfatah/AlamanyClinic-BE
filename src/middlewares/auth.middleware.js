@@ -19,16 +19,20 @@ export const protect = async (req, res, next) => {
         "Not authorized to access this route",
         401,
         null,
-        "protect"
+        "protect",
       );
     }
 
     // Verify token
     const decoded = verifyAccessToken(token);
 
+    if (!decoded) {
+      throw new ErrorClass("Invalid or expired token", 401, null, "protect");
+    }
+
     // Get user from token
     const user = await User.findById(decoded.id).select(
-      "-password -refreshToken"
+      "-password -refreshToken",
     );
     if (!user) {
       throw new ErrorClass("User not found", 404, null, "protect");
@@ -56,8 +60,8 @@ export const authorize = (...roles) => {
           `User role '${req.user.role}' is not authorized to access this route`,
           403,
           null,
-          "authorize"
-        )
+          "authorize",
+        ),
       );
     }
     next();
@@ -73,8 +77,8 @@ export const checkDoctorVerification = (req, res, next) => {
         "Your doctor profile is not verified yet",
         403,
         { verificationStatus: req.user.verificationStatus },
-        "checkDoctorVerification"
-      )
+        "checkDoctorVerification",
+      ),
     );
   }
   next();
